@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="vis.min.js"></script>
+    <link rel="stylesheet" href="vis.min.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+</head>
+<body>
+    <p>Enter PID to send signal to temperature daemon. You will receive a json file afterwards, which will be displayed in a graph.:</p>
+
+    <form id="form">
+        PID of temperature program: <input type="number" min="0" id="pid"><br>
+        <input type="button" value="Send Signal" onClick="sendSignal()">
+    </form>
+
+    <div id="graph"></div>
+
+    <script type="text/javascript">
+        function sendSignal() {
+            var pid = document.getElementById("pid").value;
+            $.ajax({
+                url: "http://127.0.0.1:12345/pid=" + pid,
+                dataType: 'json',
+                success: function(tempData) {
+                    showGraph(tempData);
+                }    
+            });     
+        }
+
+        function showGraph(tempData) {
+            var items = [];
+            var names = ['Innentemperatur', 'Aussentemperatur'];
+
+            var groups = new vis.DataSet();
+            groups.add({
+                id: 1,
+                content: names[0]
+            });
+            groups.add({
+                id: 2,
+                content: names[1]
+            });
+
+            $.each(tempData, function(i, field){
+                if (field.location == "indoor")
+                    items.push({"x": field.x, "y": field.y, "group": 1});
+                else
+                    items.push({"x": field.x, "y": field.y, "group": 2});
+            });
+
+            var container = document.getElementById('graph');
+
+            var dataset = new vis.DataSet(items);
+
+            var options = {
+                legend: true
+            };
+
+            var graph2d = new vis.Graph2d(container, dataset, groups, options);
+        }
+    </script>
+</body>
+</html>
