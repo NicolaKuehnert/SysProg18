@@ -1,4 +1,4 @@
-CFLAGS = -c -Wall -pedantic -ansi
+CFLAGS = -c -Wall -pedantic
 OFLAGS = -lwiringPi -pthread -lcrypt -lm -lrt
 INCLUDE = -I./include -I./src
 
@@ -9,6 +9,8 @@ INC_STUDI = include/studiverwaltung/
 SRC_STUDI = src/studiverwaltung/
 INC_PRUEF = include/pruefungen/
 SRC_PRUEF = src/pruefungen/
+SRC_SPEICHER = src/speicherverwaltung/
+INC_SPEICHER = include/speicherverwaltung/
 
 DEMO = $(SRC_LED)demo.c
 SEG_H = $(INC_LED)segmentanzeige.h
@@ -23,11 +25,14 @@ STUDI_H = $(INC_STUDI)studiverwaltung.h
 PRUEF_C = $(SRC_PRUEF)pruefungen.c
 PRUEF_H = $(INC_PRUEF)pruefungen.h
 
+SPEICHER_C = $(SRC_SPEICHER)speicherverwaltung.c
+SPEICHER_H = $(INC_SPEICHER)speicherverwaltung.h
+
 O_FILES = demo.o segmentanzeige.o
 
 
-##defalut target
-all: demo studi pruef
+##default target
+all: demo studi pruef speicher
 
 ##ledanzeige
 
@@ -60,6 +65,15 @@ TM1637.o: $(TM_C) $(TM_H) $(TM_INT_H)
 	gcc $(CFLAGS) $(INCLUDE) $(TM_C)
 
 
+##speicher
+
+speicher: speicherverwaltung.o
+	gcc -o speicher speicherverwaltung.o
+
+speicherverwaltung.o: $(SPEICHER_C) $(SPEICHER_H)
+	gcc $(CFLAGS) $(INCLUDE) $(SPEICHER_C)
+
+
 ##clean up
 .PHONY: clean
 clean:
@@ -71,3 +85,5 @@ clean:
 	rm studiverwaltung.o
 	rm studi
 	rm TM1637.o
+	rm speicherverwaltung.o
+	rm speicher

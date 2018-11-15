@@ -82,19 +82,4 @@ void cm_free(void *ptr){
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+int main() {return 0;}
