@@ -71,7 +71,7 @@ speicher: speicherverwaltung.o
 	gcc -o speicher speicherverwaltung.o
 
 speicherverwaltung.o: $(SPEICHER_C) $(SPEICHER_H)
-	gcc $(CFLAGS) $(INCLUDE) $(SPEICHER_C)
+	gcc $(CFLAGS) $(INCLUDE) $(SPEICHER_C) -DMALLOCSPLIT
 
 
 ##clean up
