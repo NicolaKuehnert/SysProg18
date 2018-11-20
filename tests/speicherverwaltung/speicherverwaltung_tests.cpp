@@ -18,9 +18,11 @@ extern void ColoredPrintf(GTestColor color, const char* fmt, ...);
 #define PRINT_INFO(x)   testing::internal::ColoredPrintf(testing::internal::COLOR_GREEN, "[          ] "); testing::internal::ColoredPrintf(testing::internal::COLOR_YELLOW, x)
 
 #define CHECK_MALLOC(p) if (!p) {fprintf(stderr, "NULL pointer: %s (line %d)!\n", __FILE__, __LINE__); exit(EXIT_FAILURE);}
-#define TESTSTART freemem=(memblock*)mempool;freemem->size=MEM_POOL_SIZE-sizeof(memblock);freemem->next=NULL;
+#define TESTSTART cm_init();freemem=(memblock*)mempool;freemem->size=MEM_POOL_SIZE-sizeof(memblock);freemem->next=NULL;freemem->id=id;
 
 /* ============================TESTS======================================== */
+unsigned short id = 0;
+
 
 /*
  * Testet ob die Konstante MEM_POOL_SIZE definiert wurde und diese die
@@ -30,9 +32,9 @@ extern void ColoredPrintf(GTestColor color, const char* fmt, ...);
  * @return void
  */
 TEST(Speicherverwaltung, test_MEM_POOL_SIZE) {
-    PRINT_INFO("MEM_POOL_SIZE: Wurde MEM_POOL richtig definiert?\n");
+    PRINT_INFO("MEM_POOL_SIZE: Wurde MEM_POOL ausreichend groß definiert?\n");
 
-    ASSERT_EQ(MEM_POOL_SIZE, 16384);
+    ASSERT_GE(MEM_POOL_SIZE, 4096);
 }
 
 /*
@@ -56,8 +58,7 @@ TEST(Speicherverwaltung, test_MAGIC_INT) {
  * @return void
  */
 TEST(Speicherverwaltung, test_mempool_size) {
-    PRINT_INFO(
-            "mempool: Wurde die globale Variabel mempool richtig definiert?\n");
+    PRINT_INFO("mempool: Wurde die globale Variabel mempool richtig definiert?\n");
 
     ASSERT_EQ(sizeof(mempool), MEM_POOL_SIZE);
 }
@@ -88,162 +89,172 @@ TEST(Speicherverwaltung, test_memblock) {
     memblock mb;
     mb.size = 16;
     mb.next = &mb;
+    mb.id = 42;
 
     ASSERT_EQ(mb.size, 16);
     ASSERT_EQ(mb.next, &mb);
+    ASSERT_EQ(mb.id, 42);
 }
 
 /*
- * Testet ob init_heap den Heap initiiert.
- * Precondition: init_heap() darf noch nicht gelaufen sein!
+ * Testet ob cm_init den Heap initiiert.
+ * Precondition: cm_init() darf noch nicht gelaufen sein!
  *
  * @param void
  * @return void
  */
-TEST(Speicherverwaltung, test_init_heap) { /* MUSS als erster Heap-aendernder Test laufen */
-    PRINT_INFO("init_heap: Wird der Heap initialisiert?\n");
+TEST(Speicherverwaltung, test_cm_init) { /* MUSS als erster Heap-aendernder Test laufen */
+    PRINT_INFO("cm_init: Wird der Heap initialisiert?\n");
 
     memset(mempool, 2, MEM_POOL_SIZE);
     freemem = NULL;
 
-    init_heap();
+    int erg = cm_init();
 
+    ASSERT_EQ(erg, 1);
     ASSERT_EQ(freemem, (memblock* ) mempool);
     ASSERT_EQ(freemem->size, MEM_POOL_SIZE - sizeof(memblock));
     ASSERT_EQ(NULL, freemem->next);
+    ASSERT_EQ(freemem->id, id);
 }
 
 /*
- * Testet ob ein doppelter Aufruf von init_heap nichts tut.
+ * Testet ob ein doppelter Aufruf von cm_init nichts tut.
  * - zur Kontrolle mit fremem=NULL nach dem ersten Mal.
  *
  * @param void
  * @return void
  */
-TEST(Speicherverwaltung, test_init_heap_double_call) {
-    PRINT_INFO(
-            "init_heap: Wird verhindert, dass man den Heap doppelt initalisiert?\n");
+TEST(Speicherverwaltung, test_cm_init_double_call) {
+    PRINT_INFO("cm_init: Wird verhindert, dass man den Heap doppelt initalisiert?\n");
 
     char dummy[MEM_POOL_SIZE];
 
-    init_heap(); /* mind. ein Aufruf */
+    int erg = cm_init(); /* mind. ein Aufruf */
 
     memset(mempool, 2, MEM_POOL_SIZE);
     memset(dummy, 2, MEM_POOL_SIZE);
     freemem = NULL;
 
-    init_heap(); /* tut nix mehr */
+    erg = cm_init(); /* tut nix mehr */
 
+    ASSERT_EQ(erg, 0);
     ASSERT_TRUE(memcmp(mempool, dummy, MEM_POOL_SIZE) == 0);
     ASSERT_EQ(NULL, freemem);
 }
 
 /*
- * Testet ob ein doppelter Aufruf von init_heap nichts tut.
+ * Testet ob ein doppelter Aufruf von cm_init nichts tut.
  * - zur Kontrolle mit size/next==0 nach dem ersten Mal.
  *
  * @param void
  * @param void
  */
-TEST(Speicherverwaltung, test_init_heap_double_call_blocks) {
-    PRINT_INFO(
-            "init_heap: Wird verhindert, dass man den Heap doppelt initalisiert?\n");
+TEST(Speicherverwaltung, test_cm_init_double_call_blocks) {
+    PRINT_INFO("cm_init: Wird verhindert, dass man den Heap doppelt initalisiert?\n");
 
     char dummy[MEM_POOL_SIZE];
 
-    init_heap(); /* mind. ein Aufruf */
+    int erg = cm_init(); /* mind. ein Aufruf */
 
     memset(mempool, 2, MEM_POOL_SIZE);
     memset(dummy, 2, MEM_POOL_SIZE);
     ((memblock*) mempool)->size = 0;
     ((memblock*) mempool)->next = 0;
+    ((memblock*) mempool)->id = 42;
     ((memblock*) dummy)->size = 0;
     ((memblock*) dummy)->next = 0;
+    ((memblock*) dummy)->id = 42;
     freemem = (memblock*) mempool;
 
-    init_heap(); /* tut nix mehr */
+    erg = cm_init(); /* tut nix mehr */
 
+    ASSERT_EQ(erg, 0);
     ASSERT_TRUE(memcmp(mempool, dummy, MEM_POOL_SIZE) == 0);
     ASSERT_EQ(freemem, (memblock* ) mempool);
 }
 
 /*
- * Testet ob ein doppelter Aufruf von init_heap nichts tut.
+ * Testet ob ein doppelter Aufruf von cm_init nichts tut.
  * - zur Kontrolle mit next==MAGIC_INT nach dem ersten Mal.
  *
  * @param void
  * @param void
  */
-TEST(Speicherverwaltung, test_init_heap_double_call_blocks_next_magic) {
-    PRINT_INFO(
-            "init_heap: Wird verhindert, dass man den Heap doppelt initalisiert?\n");
+TEST(Speicherverwaltung, test_cm_init_double_call_blocks_next_magic) {
+    PRINT_INFO("cm_init: Wird verhindert, dass man den Heap doppelt initalisiert?\n");
 
     char dummy[MEM_POOL_SIZE];
 
-    init_heap(); /* mind. ein Aufruf */
+    int erg = cm_init(); /* mind. ein Aufruf */
 
     memset(mempool, 2, MEM_POOL_SIZE);
     memset(dummy, 2, MEM_POOL_SIZE);
     ((memblock*) mempool)->size = MEM_POOL_SIZE - sizeof(memblock);
     ((memblock*) mempool)->next = (memblock*) MAGIC_INT;
+    ((memblock*) mempool)->id = 42;
     ((memblock*) dummy)->size = MEM_POOL_SIZE - sizeof(memblock);
     ((memblock*) dummy)->next = (memblock*) MAGIC_INT;
+    ((memblock*) dummy)->id = 42;
     freemem = (memblock*) mempool;
 
-    init_heap(); /* tut nix mehr */
+    erg = cm_init(); /* tut nix mehr */
 
+    ASSERT_EQ(erg, 0);
     ASSERT_TRUE(memcmp(mempool, dummy, MEM_POOL_SIZE) == 0);
     ASSERT_EQ(freemem, (memblock* ) mempool);
 }
 
 /*
- * Testet ob ein doppelter Aufruf von init_heap nichts tut.
+ * Testet ob ein doppelter Aufruf von cm_init nichts tut.
  *
  * @param void
  * @param void
  */
-TEST(Speicherverwaltung, test_init_heap_double_call_first_char) {
-    PRINT_INFO(
-            "init_heap: Wird verhindert, dass man den Heap doppelt initalisiert?\n");
+TEST(Speicherverwaltung, test_cm_init_double_call_first_char) {
+    PRINT_INFO("cm_init: Wird verhindert, dass man den Heap doppelt initalisiert?\n");
 
     TESTSTART
 
-    init_heap(); /* mind. ein Aufruf */
+    int erg = cm_init(); /* mind. ein Aufruf */
 
     ASSERT_EQ(freemem, (memblock* ) mempool);
     ASSERT_EQ(freemem->size, MEM_POOL_SIZE - sizeof(memblock));
     ASSERT_EQ(NULL, freemem->next);
+    ASSERT_EQ(freemem->id, id);
 
     mempool[0] = 0;
 
-    init_heap(); /* tut nix mehr */
+    erg = cm_init(); /* tut nix mehr */
 
+    ASSERT_EQ(erg, 0);
     ASSERT_EQ(mempool[0], 0);
     ASSERT_EQ(freemem, (memblock* ) mempool);
 }
 
 /*
- * Testet ob ein doppelter Aufruf von init_heap nichts tut.
+ * Testet ob ein doppelter Aufruf von cm_init nichts tut.
  *
  * @param void
  * @param void
  */
-TEST(Speicherverwaltung, test_init_heap_double_call_first_char_magic) {
-    PRINT_INFO(
-            "init_heap: Wird verhindert, dass man den Heap doppelt initalisiert?\n");
+TEST(Speicherverwaltung, test_cm_init_double_call_first_char_magic) {
+    PRINT_INFO("cm_init: Wird verhindert, dass man den Heap doppelt initalisiert?\n");
 
     TESTSTART
 
-    init_heap(); /* mind. ein Aufruf */
+    int erg = cm_init(); /* mind. ein Aufruf */
 
     ASSERT_EQ(freemem, (memblock* ) mempool);
     ASSERT_EQ(freemem->size, MEM_POOL_SIZE - sizeof(memblock));
     ASSERT_EQ(NULL, freemem->next);
+    ASSERT_EQ(freemem->id, id);
 
     *((int*) mempool) = MAGIC_INT;
 
-    init_heap(); /* tut nix mehr */
+    erg = cm_init(); /* tut nix mehr */
 
+    ASSERT_EQ(erg, 0);
     ASSERT_EQ(*((int* ) mempool), MAGIC_INT);
     ASSERT_EQ(freemem, (memblock* ) mempool);
 }
@@ -266,6 +277,7 @@ TEST(Speicherverwaltung, test_cm_malloc_null_bytes) {
     ASSERT_EQ(freemem, (memblock* ) mempool);
     ASSERT_EQ(freemem->size, MEM_POOL_SIZE - sizeof(memblock));
     ASSERT_EQ(NULL, freemem->next);
+    ASSERT_EQ(freemem->id, id);
 }
 
 #ifndef MALLOCSPLIT
@@ -281,12 +293,14 @@ TEST(Speicherverwaltung, test_cm_malloc_one_byte) {
     TESTSTART
 
     void *tmp = cm_malloc(1);
+    ++id;
 
     ASSERT_EQ(NULL, freemem);
 
     ASSERT_EQ((memblock* ) tmp, ((memblock* ) mempool) + 1);
     ASSERT_EQ((((memblock* )tmp) - 1)->size, MEM_POOL_SIZE - sizeof(memblock));
     ASSERT_EQ((((memblock* )tmp) - 1)->next, (memblock* ) MAGIC_INT);
+    ASSERT_EQ((((memblock* )tmp) - 1)->id, id);
 }
 #endif
 
@@ -303,6 +317,7 @@ TEST(Speicherverwaltung, test_cm_malloc_one_byte_with_split) {
     TESTSTART
 
     void *tmp = cm_malloc(1);
+    ++id;
 
     ASSERT_EQ(freemem, (memblock* ) (mempool + sizeof(memblock) + 1));
     ASSERT_EQ(freemem->size, MEM_POOL_SIZE - 2 * sizeof(memblock) - 1);
@@ -311,6 +326,7 @@ TEST(Speicherverwaltung, test_cm_malloc_one_byte_with_split) {
     ASSERT_EQ((memblock* ) tmp, ((memblock* ) mempool) + 1);
     ASSERT_EQ((((memblock* )tmp) - 1)->size, 1);
     ASSERT_EQ((((memblock* )tmp) - 1)->next, (memblock* ) MAGIC_INT);
+    ASSERT_EQ((((memblock* )tmp) - 1)->id, id);
 }
 #endif
 
@@ -326,10 +342,12 @@ TEST(Speicherverwaltung, test_cm_malloc_all_bytes) {
     TESTSTART
 
     void *tmp = cm_malloc(MEM_POOL_SIZE - sizeof(memblock));
+    ++id;
 
     ASSERT_EQ((memblock* ) tmp, ((memblock* ) mempool) + 1);
     ASSERT_EQ((((memblock* )tmp) - 1)->size, MEM_POOL_SIZE - sizeof(memblock));
     ASSERT_EQ((((memblock* )tmp) - 1)->next, (memblock* ) MAGIC_INT);
+    ASSERT_EQ((((memblock* )tmp) - 1)->id, id);
 
     ASSERT_EQ(NULL, freemem);
 }
@@ -341,8 +359,7 @@ TEST(Speicherverwaltung, test_cm_malloc_all_bytes) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_malloc_all_plus_one_bytes) {
-    PRINT_INFO(
-            "cm_malloc: Kann man mehr als die maximale groesse reservieren?\n");
+    PRINT_INFO("cm_malloc: Kann man mehr als die maximale groesse reservieren?\n");
 
     TESTSTART
 
@@ -353,6 +370,7 @@ TEST(Speicherverwaltung, test_cm_malloc_all_plus_one_bytes) {
     ASSERT_EQ(freemem, (memblock* ) mempool);
     ASSERT_EQ(freemem->size, MEM_POOL_SIZE - sizeof(memblock));
     ASSERT_EQ(NULL, freemem->next);
+    ASSERT_EQ(freemem->id, id);
 }
 
 /*
@@ -362,8 +380,7 @@ TEST(Speicherverwaltung, test_cm_malloc_all_plus_one_bytes) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_malloc_no_free_mem) {
-    PRINT_INFO(
-            "cm_malloc: Kann man Speicher reservieren wenn man keinen mehr hat?\n");
+    PRINT_INFO("cm_malloc: Kann man Speicher reservieren wenn man keinen mehr hat?\n");
 
     TESTSTART
 
@@ -388,10 +405,12 @@ TEST(Speicherverwaltung, test_cm_malloc_without_split) {
 
     size_t size = MEM_POOL_SIZE - sizeof(memblock) - 2 * sizeof(memblock);
     void *tmp = cm_malloc(size);
+    ++id;
 
     ASSERT_EQ((memblock* ) tmp, ((memblock* ) mempool) + 1);
     ASSERT_EQ((((memblock* )tmp) - 1)->size, MEM_POOL_SIZE - sizeof(memblock));
     ASSERT_EQ((((memblock* )tmp) - 1)->next, (memblock* ) MAGIC_INT);
+    ASSERT_EQ((((memblock* )tmp) - 1)->id, id);
 
     ASSERT_EQ(NULL, freemem);
 }
@@ -409,10 +428,12 @@ TEST(Speicherverwaltung, test_cm_malloc_without_split_limit) {
 
     size_t size = MEM_POOL_SIZE - sizeof(memblock) - 2 * sizeof(memblock) - 32;
     void *tmp = cm_malloc(size);
+    ++id;
 
     ASSERT_EQ((memblock* ) tmp, ((memblock* ) mempool) + 1);
     ASSERT_EQ((((memblock* )tmp) - 1)->size, MEM_POOL_SIZE - sizeof(memblock));
     ASSERT_EQ((((memblock* )tmp) - 1)->next, (memblock* ) MAGIC_INT);
+    ASSERT_EQ((((memblock* )tmp) - 1)->id, id);
 
     ASSERT_EQ(NULL, freemem);
 }
@@ -431,15 +452,15 @@ TEST(Speicherverwaltung, test_cm_malloc_with_split_limit) {
 
     size_t size = MEM_POOL_SIZE - sizeof(memblock) - 2 * sizeof(memblock) - 33;
     void *tmp = cm_malloc(size);
+    ++id;
 
     ASSERT_EQ((memblock* ) tmp, ((memblock* ) mempool) + 1);
     ASSERT_EQ((((memblock* )tmp) - 1)->size, size);
     ASSERT_EQ((((memblock* )tmp) - 1)->next, (memblock* ) MAGIC_INT);
+    ASSERT_EQ((((memblock* )tmp) - 1)->id, id);
 
-    ASSERT_EQ(freemem,
-            (memblock* ) (mempool + sizeof(memblock) + size));
-    ASSERT_EQ(freemem->size,
-            MEM_POOL_SIZE - sizeof(memblock) - sizeof(memblock) - size);
+    ASSERT_EQ(freemem, (memblock* ) (mempool + sizeof(memblock) + size));
+    ASSERT_EQ(freemem->size, MEM_POOL_SIZE - sizeof(memblock) - sizeof(memblock) - size);
     ASSERT_EQ(NULL, freemem->next);
 }
 #endif
@@ -484,6 +505,7 @@ TEST(Speicherverwaltung, test_cm_malloc_last_block) {
     f->next = NULL;
 
     tmp = cm_malloc(&mempool[MEM_POOL_SIZE - 1] - ((char*) (f + 1)));
+    ++id;
 
     ASSERT_EQ(a, freemem);
     ASSERT_EQ(a->next, b);
@@ -494,6 +516,7 @@ TEST(Speicherverwaltung, test_cm_malloc_last_block) {
     ASSERT_EQ((char* )tmp, (char* )(f + 1));
     ASSERT_EQ((f->next), (memblock* ) MAGIC_INT);
     ASSERT_EQ(f->size, &mempool[MEM_POOL_SIZE - 1] - ((char*) (f + 1)));
+    ASSERT_EQ(f->id, id);
 }
 
 /*
@@ -536,6 +559,7 @@ TEST(Speicherverwaltung, test_cm_malloc_list_no_split_first) {
     f->next = NULL;
 
     tmp = cm_malloc(90);
+    ++id;
     g = (memblock*) tmp - 1;
 
     ASSERT_EQ(b->next, c);
@@ -546,6 +570,7 @@ TEST(Speicherverwaltung, test_cm_malloc_list_no_split_first) {
     ASSERT_EQ((char* )tmp, ((char* )(a + 1)));
     ASSERT_EQ((g->next), (memblock* ) MAGIC_INT);
     ASSERT_EQ(g->size, 100);
+    ASSERT_EQ(g->id, id);
     ASSERT_EQ(b, freemem);
 }
 
@@ -556,8 +581,7 @@ TEST(Speicherverwaltung, test_cm_malloc_list_no_split_first) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_malloc_no_block_in_list_fits) {
-    PRINT_INFO(
-            "cm_malloc: Passender freier Block am Ende, der nicht in der Liste ist\n");
+    PRINT_INFO("cm_malloc: Passender freier Block am Ende, der nicht in der Liste ist\n");
 
     TESTSTART
 
@@ -608,8 +632,7 @@ TEST(Speicherverwaltung, test_cm_malloc_no_block_in_list_fits) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_malloc_no_listed_block_fits_unlisted_in_middle) {
-    PRINT_INFO(
-            "cm_malloc: Passender freier Block in der Mitte, der nicht in der Liste ist\n");
+    PRINT_INFO("cm_malloc: Passender freier Block in der Mitte, der nicht in der Liste ist\n");
 
     TESTSTART
 
@@ -693,6 +716,7 @@ TEST(Speicherverwaltung, test_cm_malloc_iteration) {
     f->next = NULL;
 
     tmp = cm_malloc(300);
+    ++id;
     g = (memblock*) ((char*) (d + 1) + 300);
 
     ASSERT_EQ(a, freemem);
@@ -706,6 +730,7 @@ TEST(Speicherverwaltung, test_cm_malloc_iteration) {
     ASSERT_EQ((char* )tmp, (char* )(d + 1));
     ASSERT_EQ(d->next, (memblock* ) MAGIC_INT);
     ASSERT_EQ(d->size, 300);
+    ASSERT_EQ(d->id, id);
 }
 
 /*
@@ -724,8 +749,8 @@ TEST(Speicherverwaltung, test_cm_malloc_list_split_first) {
     a = (memblock*) mempool;
     freemem = a;
 
-    b = (memblock*) ((char*) (a + 1) + 100);
-    a->size = 100;
+    b = (memblock*) ((char*) (a + 1) + 120);
+    a->size = 120;
     a->next = b;
 
     c = (memblock*) ((char*) (b + 1) + 140);
@@ -748,6 +773,7 @@ TEST(Speicherverwaltung, test_cm_malloc_list_split_first) {
     f->next = NULL;
 
     tmp = cm_malloc(20);
+    ++id;
     g = (memblock*) ((char*) (a + 1) + 20);
 
     ASSERT_EQ(b->next, c);
@@ -758,9 +784,10 @@ TEST(Speicherverwaltung, test_cm_malloc_list_split_first) {
     ASSERT_EQ((char* )tmp, (char* )(a + 1));
     ASSERT_EQ((a->next), (memblock* ) MAGIC_INT);
     ASSERT_EQ(a->size, 20);
+    ASSERT_EQ(a->id, id);
     ASSERT_EQ(g, freemem);
     ASSERT_EQ(g->next, b);
-    ASSERT_EQ(g->size, 80 - sizeof(memblock));
+    ASSERT_EQ(g->size, 100 - sizeof(memblock));
 }
 #endif
 
@@ -780,6 +807,7 @@ TEST(Speicherverwaltung, test_cm_malloc_mem_in_array) {
     freemem = (memblock*) dummy;
     freemem->size = 200 - sizeof(memblock);
     freemem->next = NULL;
+    freemem->id = 0;
 
     void* a = cm_malloc(150);
 
@@ -788,6 +816,7 @@ TEST(Speicherverwaltung, test_cm_malloc_mem_in_array) {
     ASSERT_EQ(freemem, (memblock* )dummy);
     ASSERT_EQ(freemem->size, 200 - sizeof(memblock));
     ASSERT_EQ(NULL, freemem->next);
+    ASSERT_EQ(freemem->id, 0);
 }
 
 /*
@@ -808,11 +837,13 @@ TEST(Speicherverwaltung, test_cm_malloc_outside_mempool) {
     out = (memblock*) dummy;
     out->size = 300 - sizeof(memblock);
     out->next = NULL;
+    out->id = 7;
 
     a = (memblock*) mempool;
     freemem = a;
     a->size = 100;
     a->next = out;
+    a->id = 42;
 
     void* t = cm_malloc(200);
 
@@ -821,6 +852,7 @@ TEST(Speicherverwaltung, test_cm_malloc_outside_mempool) {
     ASSERT_EQ(out, (memblock* )dummy);
     ASSERT_EQ(out->size, 300 - sizeof(memblock));
     ASSERT_EQ(NULL, out->next);
+    ASSERT_EQ(out->id, 7);
 }
 
 /*
@@ -850,8 +882,7 @@ TEST(Speicherverwaltung, test_cm_free_null) {
  * @param void
  */
 TEST(Speicherverwaltung, test_cm_free_first_block) {
-    PRINT_INFO(
-            "cm_free: Reagiert freemem richtig wenn man den ersten Blockt freigibt?\n");
+    PRINT_INFO("cm_free: Reagiert freemem richtig wenn man den ersten Blockt freigibt?\n");
 
     TESTSTART
 
@@ -863,9 +894,11 @@ TEST(Speicherverwaltung, test_cm_free_first_block) {
 
     a->size = 200 - sizeof(memblock);
     a->next = (memblock*) MAGIC_INT;
+    a->id = 7;
 
     b->size = MEM_POOL_SIZE - 200 - sizeof(memblock);
     b->next = NULL;
+    b->id = 42;
 
     freemem = b;
     ptr = (void*) (mempool + sizeof(memblock));
@@ -875,8 +908,10 @@ TEST(Speicherverwaltung, test_cm_free_first_block) {
     ASSERT_EQ(freemem, (memblock* ) mempool);
     ASSERT_EQ(a->size, 200 - sizeof(memblock));
     ASSERT_EQ(a->next, b);
+    ASSERT_EQ(a->id, 7);
     ASSERT_EQ(b->size, MEM_POOL_SIZE - 200 - sizeof(memblock));
     ASSERT_EQ(NULL, b->next);
+    ASSERT_EQ(b->id, 42);
 }
 
 /*
@@ -886,8 +921,7 @@ TEST(Speicherverwaltung, test_cm_free_first_block) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_free_second_block) {
-    PRINT_INFO(
-            "cm_free: Reagiert freemem richtig wenn man einen Blockt in der mitte freigibt?\n");
+    PRINT_INFO("cm_free: Reagiert freemem richtig wenn man einen Blockt in der mitte freigibt?\n");
 
     TESTSTART
 
@@ -900,12 +934,15 @@ TEST(Speicherverwaltung, test_cm_free_second_block) {
 
     a->size = 200 - sizeof(memblock);
     a->next = NULL;
+    a->id = 1;
 
     b->size = 300 - sizeof(memblock);
     b->next = (memblock*) MAGIC_INT;
+    b->id = 2;
 
     c->size = MEM_POOL_SIZE - 500 - sizeof(memblock);
     c->next = a;
+    c->id = 3;
 
     freemem = c;
     ptr = (void*) (b + 1);
@@ -915,10 +952,13 @@ TEST(Speicherverwaltung, test_cm_free_second_block) {
     ASSERT_EQ(freemem, b);
     ASSERT_EQ(NULL, a->next);
     ASSERT_EQ(a->size, 200 - sizeof(memblock));
+    ASSERT_EQ(a->id, 1);
     ASSERT_EQ(b->next, c);
     ASSERT_EQ(b->size, 300 - sizeof(memblock));
+    ASSERT_EQ(b->id, 2);
     ASSERT_EQ(c->next, a);
     ASSERT_EQ(c->size, MEM_POOL_SIZE - 500 - sizeof(memblock));
+    ASSERT_EQ(c->id, 3);
 }
 
 /*
@@ -938,6 +978,7 @@ TEST(Speicherverwaltung, test_cm_free_no_freemem) {
     a = (memblock*) mempool;
     a->size = MEM_POOL_SIZE - sizeof(memblock);
     a->next = (memblock*) MAGIC_INT;
+    a->id = 7;
 
     freemem = NULL;
     ptr = (void*) (mempool + sizeof(memblock));
@@ -947,6 +988,7 @@ TEST(Speicherverwaltung, test_cm_free_no_freemem) {
     ASSERT_EQ(freemem, a);
     ASSERT_EQ(NULL, a->next);
     ASSERT_EQ(a->size, MEM_POOL_SIZE - sizeof(memblock));
+    ASSERT_EQ(a->id, 7);
 }
 
 /*
@@ -968,9 +1010,11 @@ TEST(Speicherverwaltung, test_cm_free_wrong_next_null) {
 
     a->size = 200 - sizeof(memblock);
     a->next = NULL;
+    a->id = 1;
 
     b->size = MEM_POOL_SIZE - 200 - sizeof(memblock);
     b->next = NULL;
+    b->id = 2;
 
     freemem = b;
     ptr = (void*) (mempool + sizeof(memblock));
@@ -980,8 +1024,10 @@ TEST(Speicherverwaltung, test_cm_free_wrong_next_null) {
     ASSERT_EQ(freemem, b);
     ASSERT_EQ(NULL, a->next);
     ASSERT_EQ(a->size, 200 - sizeof(memblock));
+    ASSERT_EQ(a->id, 1);
     ASSERT_EQ(NULL, b->next);
     ASSERT_EQ(b->size, MEM_POOL_SIZE - 200 - sizeof(memblock));
+    ASSERT_EQ(b->id, 2);
 }
 
 /*
@@ -1003,9 +1049,11 @@ TEST(Speicherverwaltung, test_cm_free_wrong_next_b) {
 
     a->size = 200 - sizeof(memblock);
     a->next = b;
+    a->id = 1;
 
     b->size = MEM_POOL_SIZE - 200 - sizeof(memblock);
     b->next = NULL;
+    b->id = 2;
 
     freemem = b;
     ptr = (void*) (mempool + sizeof(memblock));
@@ -1015,8 +1063,10 @@ TEST(Speicherverwaltung, test_cm_free_wrong_next_b) {
     ASSERT_EQ(freemem, b);
     ASSERT_EQ(NULL, b->next);
     ASSERT_EQ(b->size, MEM_POOL_SIZE - 200 - sizeof(memblock));
+    ASSERT_EQ(b->id, 2);
     ASSERT_EQ(a->next, b);
     ASSERT_EQ(a->size, 200 - sizeof(memblock));
+    ASSERT_EQ(a->id, 1);
 }
 
 /*
@@ -1040,6 +1090,7 @@ TEST(Speicherverwaltung, test_cm_free_wrongblock_outside) {
     a = (memblock*) reserved_space;
     a->size = 100 - sizeof(memblock);
     a->next = (memblock*) MAGIC_INT;
+    a->id = 1;
 
     ptr = (void*) (reserved_space + sizeof(memblock));
     cm_free(ptr);
@@ -1049,6 +1100,7 @@ TEST(Speicherverwaltung, test_cm_free_wrongblock_outside) {
     ASSERT_EQ(freemem->size, MEM_POOL_SIZE - sizeof(memblock));
     ASSERT_EQ(a->next, (memblock*) MAGIC_INT);
     ASSERT_EQ(a->size, 100 - sizeof(memblock));
+    ASSERT_EQ(a->id, 1);
 }
 
 /*
@@ -1066,6 +1118,7 @@ TEST(Speicherverwaltung, test_cm_free_wrong_pointer_localvariable) {
 
     a.size = 10;
     a.next = (memblock*) MAGIC_INT;
+    a.id = 99;
 
     cm_free(&a + 1);
 
@@ -1074,6 +1127,7 @@ TEST(Speicherverwaltung, test_cm_free_wrong_pointer_localvariable) {
     ASSERT_EQ(freemem->size, MEM_POOL_SIZE - sizeof(memblock));
     ASSERT_EQ(a.next, (memblock*) MAGIC_INT);
     ASSERT_EQ(a.size, 10);
+    ASSERT_EQ(a.id, 99);
 }
 
 /*
@@ -1093,6 +1147,7 @@ TEST(Speicherverwaltung, test_cm_free_wrong_pointer_mempool) {
     a = (memblock*) mempool;
     a->size = MEM_POOL_SIZE - sizeof(memblock);
     a->next = (memblock*) MAGIC_INT;
+    a->id = 4;
 
     ptr = (void*) (mempool + 1);
 
@@ -1101,6 +1156,7 @@ TEST(Speicherverwaltung, test_cm_free_wrong_pointer_mempool) {
     ASSERT_EQ(freemem, (memblock* ) mempool);
     ASSERT_EQ(a->next, (memblock*) MAGIC_INT);
     ASSERT_EQ(a->size, MEM_POOL_SIZE - sizeof(memblock));
+    ASSERT_EQ(a->id, 4);
 }
 
 /* ************************************************************************* */
@@ -1122,8 +1178,10 @@ TEST(Speicherverwaltung, test_cm_defrag_free_mem_null) {
     b = (memblock*) (mempool + 200);
     a->size = 200 - sizeof(memblock);
     a->next = (memblock*) MAGIC_INT;
+    a->id = 8;
     b->size = 200 - sizeof(memblock);
     b->next = (memblock*) MAGIC_INT;
+    b->id = 10;
 
     char mempoolcopy[MEM_POOL_SIZE];
     memcpy(mempoolcopy, mempool, MEM_POOL_SIZE);
@@ -1157,18 +1215,23 @@ TEST(Speicherverwaltung, test_cm_defrag_defrag_not_possible) {
 
     a->size = 200 - sizeof(memblock);
     a->next = c;
+    a->id = 100;
 
     b->size = 200 - sizeof(memblock);
     b->next = (memblock*) MAGIC_INT;
+    b->id = 200;
 
     c->size = 200 - sizeof(memblock);
     c->next = e;
+    c->id = 400;
 
     d->size = 200 - sizeof(memblock);
     d->next = (memblock*) MAGIC_INT;
+    d->id = 800;
 
     e->size = 400 - sizeof(memblock);
     e->next = NULL;
+    e->id = 5;
 
     freemem = a;
 
@@ -1191,8 +1254,7 @@ TEST(Speicherverwaltung, test_cm_defrag_defrag_not_possible) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag_ptr_blocks_sorted) {
-    PRINT_INFO(
-            "cm_defrag: Reagiert cm_defrag wenn die Pointer aufeinander folgenden Blocks?\n");
+    PRINT_INFO("cm_defrag: Reagiert cm_defrag wenn die Pointer aufeinander folgenden Blocks?\n");
 
     TESTSTART
 
@@ -1203,9 +1265,11 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_blocks_sorted) {
 
     a->size = 200 - sizeof(memblock);
     a->next = b;
+    a->id = 7;
 
     b->size = 200;
     b->next = NULL;
+    b->id = 500;
 
     freemem = a;
 
@@ -1214,6 +1278,7 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_blocks_sorted) {
     ASSERT_EQ(freemem, a);
     ASSERT_EQ(a->size, 200 - sizeof(memblock) + 200 + sizeof(memblock));
     ASSERT_EQ(NULL, a->next);
+    ASSERT_EQ(a->id, 7);
 }
 
 /*
@@ -1226,8 +1291,7 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_blocks_sorted) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag_ptr_blocks_not_sorted2) {
-    PRINT_INFO(
-            "cm_defrag: Reagiert cm_defrag wenn die Pointer nicht aufeinander folgenden Blocks?\n");
+    PRINT_INFO("cm_defrag: Reagiert cm_defrag wenn die Pointer nicht aufeinander folgenden Blocks?\n");
 
     TESTSTART
 
@@ -1238,9 +1302,11 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_blocks_not_sorted2) {
 
     a->size = 200 - sizeof(memblock);
     a->next = NULL;
+    a->id = 7;
 
     b->size = 200;
     b->next = a;
+    b->id = 8;
 
     freemem = b;
 
@@ -1249,6 +1315,7 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_blocks_not_sorted2) {
     ASSERT_EQ(freemem, a);
     ASSERT_EQ(a->size, 200 - sizeof(memblock) + 200 + sizeof(memblock));
     ASSERT_EQ(NULL, a->next);
+    ASSERT_EQ(a->id, 7);
 }
 
 /*
@@ -1258,8 +1325,7 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_blocks_not_sorted2) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag_ptr_not_sorted) {
-    PRINT_INFO(
-            "cm_defrag: Reagiert cm_defrag wenn die Blocks nicht aufeinander folgen?\n");
+    PRINT_INFO("cm_defrag: Reagiert cm_defrag wenn die Blocks nicht aufeinander folgen?\n");
 
     TESTSTART
 
@@ -1272,15 +1338,19 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_not_sorted) {
 
     a->size = 200 - sizeof(memblock);
     a->next = d;
+    a->id = 8;
 
     b->size = 200 - sizeof(memblock);
     b->next = NULL;
+    b->id = 7;
 
     c->size = 200 - sizeof(memblock);
     c->next = (memblock*) MAGIC_INT;
+    c->id = 6;
 
     d->size = 1000;
     d->next = b;
+    d->id = 5;
 
     freemem = a;
 
@@ -1289,10 +1359,13 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_not_sorted) {
     ASSERT_EQ(freemem, a);
     ASSERT_EQ(a->size, 200 - sizeof(memblock) + b->size + sizeof(memblock));
     ASSERT_EQ(a->next, d);
+    ASSERT_EQ(a->id, 8);
     ASSERT_EQ(d->size, 1000);
     ASSERT_EQ(NULL, d->next);
+    ASSERT_EQ(d->id, 5);
     ASSERT_EQ(c->size, 200 - sizeof(memblock));
     ASSERT_EQ(c->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(c->id, 6);
 }
 
 /*
@@ -1304,8 +1377,7 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_not_sorted) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag_two_separate_defrags) {
-    PRINT_INFO(
-            "cm_defrag: Funktionieren zwei Zusammenfuehrungen mit einem belegten Block in der Mitte?\n");
+    PRINT_INFO("cm_defrag: Funktionieren zwei Zusammenfuehrungen mit einem belegten Block in der Mitte?\n");
 
     TESTSTART
 
@@ -1319,18 +1391,23 @@ TEST(Speicherverwaltung, test_cm_defrag_two_separate_defrags) {
 
     a->size = 200 - sizeof(memblock);
     a->next = d;
+    a->id = 7;
 
     b->size = 200 - sizeof(memblock);
     b->next = e;
+    b->id = 5;
 
     c->size = 200 - sizeof(memblock);
     c->next = (memblock*) MAGIC_INT;
+    c->id = 8;
 
     d->size = 400 - sizeof(memblock);
     d->next = b;
+    d->id = 9;
 
     e->size = 100;
     e->next = NULL;
+    e->id = 10;
 
     freemem = a;
 
@@ -1339,10 +1416,13 @@ TEST(Speicherverwaltung, test_cm_defrag_two_separate_defrags) {
     ASSERT_EQ(freemem, a);
     ASSERT_EQ(a->size, 200 - sizeof(memblock) + b->size + sizeof(memblock));
     ASSERT_EQ(a->next, d);
+    ASSERT_EQ(a->id, 7);
     ASSERT_EQ(d->size, 400 - sizeof(memblock) + e->size + sizeof(memblock));
     ASSERT_EQ(NULL, d->next);
+    ASSERT_EQ(d->id, 9);
     ASSERT_EQ(c->size, 200 - sizeof(memblock));
     ASSERT_EQ(c->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(c->id, 8);
 }
 
 /*
@@ -1352,8 +1432,7 @@ TEST(Speicherverwaltung, test_cm_defrag_two_separate_defrags) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag_with_three_free_blocks) {
-    PRINT_INFO(
-            "cm_defrag: Werden drei aneinader grenzende Bloecke zusdammengefasst?\n");
+    PRINT_INFO("cm_defrag: Werden drei aneinader grenzende Bloecke zusdammengefasst?\n");
 
     TESTSTART
 
@@ -1362,20 +1441,24 @@ TEST(Speicherverwaltung, test_cm_defrag_with_three_free_blocks) {
     a = (memblock*) (mempool + sizeof(memblock) + 100);
     a->size = 100;
     a->next = NULL;
+    a->id = 8;
 
     b = (memblock*) (mempool + sizeof(memblock) * 2 + 200);
     b->size = MEM_POOL_SIZE - (sizeof(memblock) * 3 + 200);
     b->next = a;
+    b->id = 99;
 
     freemem = (memblock*) mempool;
     freemem->size = 100;
     freemem->next = b;
+    freemem->id = 0;
 
     cm_defrag();
 
     ASSERT_EQ(freemem, (memblock* ) mempool);
     ASSERT_EQ(freemem->size, MEM_POOL_SIZE - sizeof(memblock));
     ASSERT_EQ(NULL, freemem->next);
+    ASSERT_EQ(freemem->id, 0);
 }
 
 /*
@@ -1385,8 +1468,7 @@ TEST(Speicherverwaltung, test_cm_defrag_with_three_free_blocks) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag_ptr_nested) {
-    PRINT_INFO(
-            "cm_defrag: Reagiert cm_defrag wenn die Bloecke verschachtelt sind (kompletter Pool)?\n");
+    PRINT_INFO("cm_defrag: Reagiert cm_defrag wenn die Bloecke verschachtelt sind (kompletter Pool)?\n");
 
     TESTSTART
 
@@ -1399,15 +1481,19 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested) {
 
     d->size = 200 - sizeof(memblock);
     d->next = NULL;
+    d->id = 1;
 
     b->size = 300 - sizeof(memblock);
     b->next = c;
+    b->id = 2;
 
     a->size = 400 - sizeof(memblock);
     a->next = b;
+    a->id = 3;
 
     c->size = MEM_POOL_SIZE - 900 - sizeof(memblock);
     c->next = d;
+    c->id = 4;
 
     freemem = a;
 
@@ -1416,6 +1502,7 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested) {
     ASSERT_EQ(freemem, d);
     ASSERT_EQ(freemem->size, MEM_POOL_SIZE - sizeof(memblock));
     ASSERT_EQ(NULL, freemem->next);
+    ASSERT_EQ(freemem->id, 1);
 }
 
 /*
@@ -1425,8 +1512,7 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag_ptr_nested_front) {
-    PRINT_INFO(
-            "cm_defrag: Reagiert cm_defrag wenn die Bloecke verschachtelt sind (belegter Block vorn)?\n");
+    PRINT_INFO("cm_defrag: Reagiert cm_defrag wenn die Bloecke verschachtelt sind (belegter Block vorn)?\n");
 
     TESTSTART
 
@@ -1440,18 +1526,23 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested_front) {
 
     x->size = 100 - sizeof(memblock);
     x->next = (memblock*) MAGIC_INT;
+    x->id = 7;
 
     d->size = 100 - sizeof(memblock);
     d->next = NULL;
+    d->id = 1;
 
     b->size = 300 - sizeof(memblock);
     b->next = c;
+    b->id = 2;
 
     a->size = 400 - sizeof(memblock);
     a->next = b;
+    a->id= 3;
 
     c->size = MEM_POOL_SIZE - 900 - sizeof(memblock);
     c->next = d;
+    c->id = 4;
 
     freemem = a;
 
@@ -1460,8 +1551,10 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested_front) {
     ASSERT_EQ(freemem, d);
     ASSERT_EQ(freemem->size, MEM_POOL_SIZE - 100 - sizeof(memblock));
     ASSERT_EQ(NULL, freemem->next);
+    ASSERT_EQ(freemem->id, 1);
     ASSERT_EQ(x->size, 100 - sizeof(memblock));
     ASSERT_EQ(x->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(x->id, 7);
 }
 
 /*
@@ -1471,8 +1564,7 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested_front) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag_ptr_nested_end) {
-    PRINT_INFO(
-            "cm_defrag: Reagiert cm_defrag wenn die Bloecke verschachtelt sind (belegter Block hinten)?\n");
+    PRINT_INFO("cm_defrag: Reagiert cm_defrag wenn die Bloecke verschachtelt sind (belegter Block hinten)?\n");
 
     TESTSTART
 
@@ -1486,18 +1578,23 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested_end) {
 
     d->size = 200 - sizeof(memblock);
     d->next = NULL;
+    d->id = 0;
 
     b->size = 300 - sizeof(memblock);
     b->next = c;
+    b->id = 1;
 
     a->size = 400 - sizeof(memblock);
     a->next = b;
+    a->id = 2;
 
     c->size = 500 - sizeof(memblock);
     c->next = d;
+    c->id = 3;
 
     x->size = MEM_POOL_SIZE - 1400 - sizeof(memblock);
     x->next = (memblock*) MAGIC_INT;
+    x->id = 4;
 
     freemem = a;
 
@@ -1506,8 +1603,10 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested_end) {
     ASSERT_EQ(freemem, d);
     ASSERT_EQ(freemem->size, 1400 - sizeof(memblock));
     ASSERT_EQ(NULL, freemem->next);
+    ASSERT_EQ(freemem->id, 0);
     ASSERT_EQ(x->size, MEM_POOL_SIZE - 1400 - sizeof(memblock));
     ASSERT_EQ(x->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(x->id, 4);
 }
 
 /*
@@ -1517,8 +1616,7 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested_end) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag_ptr_nested2) {
-    PRINT_INFO(
-            "cm_defrag: Reagiert cm_defrag wenn die Bloecke komplexer verschachtelt sind (kompletter Pool)?\n");
+    PRINT_INFO("cm_defrag: Reagiert cm_defrag wenn die Bloecke komplexer verschachtelt sind (kompletter Pool)?\n");
 
     TESTSTART
 
@@ -1531,15 +1629,19 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested2) {
 
     d->size = 200 - sizeof(memblock);
     d->next = NULL;
+    d->id = 0;
 
     a->size = 300 - sizeof(memblock);
     a->next = b;
+    a->id = 1;
 
     c->size = 400 - sizeof(memblock);
     c->next = d;
+    c->id = 2;
 
     b->size = MEM_POOL_SIZE - 900 - sizeof(memblock);
     b->next = c;
+    b->id = 3;
 
     freemem = a;
 
@@ -1548,6 +1650,7 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested2) {
     ASSERT_EQ(freemem, d);
     ASSERT_EQ(freemem->size, MEM_POOL_SIZE - sizeof(memblock));
     ASSERT_EQ(NULL, freemem->next);
+    ASSERT_EQ(freemem->id, 0);
 }
 
 /*
@@ -1557,8 +1660,7 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested2) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag_ptr_nested2_front) {
-    PRINT_INFO(
-            "cm_defrag: Reagiert cm_defrag wenn die Bloecke komplexer verschachtelt sind (belegter Block vorn)?\n");
+    PRINT_INFO("cm_defrag: Reagiert cm_defrag wenn die Bloecke komplexer verschachtelt sind (belegter Block vorn)?\n");
 
     TESTSTART
 
@@ -1572,18 +1674,23 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested2_front) {
 
     x->size = 100 - sizeof(memblock);
     x->next = (memblock*) MAGIC_INT;
+    x->id = 0;
 
     d->size = 100 - sizeof(memblock);
     d->next = NULL;
+    d->id = 1;
 
     a->size = 300 - sizeof(memblock);
     a->next = b;
+    a->id = 2;
 
     c->size = 400 - sizeof(memblock);
     c->next = d;
+    c->id = 3;
 
     b->size = MEM_POOL_SIZE - 900 - sizeof(memblock);
     b->next = c;
+    b->id = 4;
 
     freemem = a;
 
@@ -1592,8 +1699,10 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested2_front) {
     ASSERT_EQ(freemem, d);
     ASSERT_EQ(freemem->size, MEM_POOL_SIZE - 100 - sizeof(memblock));
     ASSERT_EQ(NULL, freemem->next);
+    ASSERT_EQ(freemem->id, 1);
     ASSERT_EQ(x->size, 100 - sizeof(memblock));
     ASSERT_EQ(x->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(x->id, 0);
 }
 
 /*
@@ -1603,8 +1712,7 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested2_front) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag_ptr_nested2_middle) {
-    PRINT_INFO(
-            "cm_defrag: Reagiert cm_defrag wenn die Bloecke komplexer verschachtelt sind (belegter Block mitte)?\n");
+    PRINT_INFO("cm_defrag: Reagiert cm_defrag wenn die Bloecke komplexer verschachtelt sind (belegter Block mitte)?\n");
 
     TESTSTART
 
@@ -1618,18 +1726,23 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested2_middle) {
 
     d->size = 200 - sizeof(memblock);
     d->next = NULL;
+    d->id = 1;
 
     a->size = 200 - sizeof(memblock);
     a->next = b;
+    a->id = 2;
 
     x->size = 100 - sizeof(memblock);
     x->next = (memblock*) MAGIC_INT;
+    x->id = 4;
 
     c->size = 400 - sizeof(memblock);
     c->next = d;
+    c->id = 5;
 
     b->size = MEM_POOL_SIZE - 900 - sizeof(memblock);
     b->next = c;
+    b->id = 6;
 
     freemem = a;
 
@@ -1638,10 +1751,13 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested2_middle) {
     ASSERT_EQ(freemem, d);
     ASSERT_EQ(freemem->size, 400 - sizeof(memblock));
     ASSERT_EQ(freemem->next, c);
+    ASSERT_EQ(freemem->id, 1);
     ASSERT_EQ(c->size, MEM_POOL_SIZE - 500 - sizeof(memblock));
     ASSERT_EQ(NULL, c->next);
+    ASSERT_EQ(c->id, 5);
     ASSERT_EQ(x->size, 100 - sizeof(memblock));
     ASSERT_EQ(x->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(x->id, 4);
 }
 
 /*
@@ -1651,8 +1767,7 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested2_middle) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag_ptr_nested2_end) {
-    PRINT_INFO(
-            "cm_defrag: Reagiert cm_defrag wenn die Bloecke komplexer verschachtelt sind (belegter Block hinten)?\n");
+    PRINT_INFO("cm_defrag: Reagiert cm_defrag wenn die Bloecke komplexer verschachtelt sind (belegter Block hinten)?\n");
 
     TESTSTART
 
@@ -1666,18 +1781,23 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested2_end) {
 
     d->size = 200 - sizeof(memblock);
     d->next = NULL;
+    d->id = 1;
 
     a->size = 300 - sizeof(memblock);
     a->next = b;
+    a-> id = 2;
 
     c->size = 400 - sizeof(memblock);
     c->next = d;
+    c->id = 3;
 
     b->size = 500 - sizeof(memblock);
     b->next = c;
+    b->id = 4;
 
     x->size = MEM_POOL_SIZE - 1400 - sizeof(memblock);
     x->next = (memblock*) MAGIC_INT;
+    x->id = 5;
 
     freemem = a;
 
@@ -1686,8 +1806,10 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested2_end) {
     ASSERT_EQ(freemem, d);
     ASSERT_EQ(freemem->size, 1400 - sizeof(memblock));
     ASSERT_EQ(NULL, freemem->next);
+    ASSERT_EQ(freemem->id, 1);
     ASSERT_EQ(x->size, MEM_POOL_SIZE - 1400 - sizeof(memblock));
     ASSERT_EQ(x->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(x->id, 5);
 }
 
 /*
@@ -1697,8 +1819,7 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested2_end) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag_ptr_nested3) {
-    PRINT_INFO(
-            "cm_defrag: Reagiert cm_defrag wenn die Bloecke noch komplexer verschachtelt sind (kompletter Pool)?\n");
+    PRINT_INFO("cm_defrag: Reagiert cm_defrag wenn die Bloecke noch komplexer verschachtelt sind (kompletter Pool)?\n");
 
     TESTSTART
 
@@ -1711,15 +1832,19 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested3) {
 
     b->size = 200 - sizeof(memblock);
     b->next = c;
+    b->id = 3;
 
     c->size = 300 - sizeof(memblock);
     c->next = d;
+    c->id = 4;
 
     d->size = 400 - sizeof(memblock);
     d->next = NULL;
+    d->id = 5;
 
     a->size = MEM_POOL_SIZE - 900 - sizeof(memblock);
     a->next = b;
+    a->id = 6;
 
     freemem = a;
 
@@ -1728,6 +1853,7 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested3) {
     ASSERT_EQ(freemem, b);
     ASSERT_EQ(freemem->size, MEM_POOL_SIZE - sizeof(memblock));
     ASSERT_EQ(NULL, freemem->next);
+    ASSERT_EQ(freemem->id, 3);
 }
 
 /*
@@ -1737,8 +1863,7 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested3) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag_ptr_nested4) {
-    PRINT_INFO(
-            "cm_defrag: Reagiert cm_defrag wenn die Bloecke noch komplexer verschachtelt sind (belegter Block)?\n");
+    PRINT_INFO("cm_defrag: Reagiert cm_defrag wenn die Bloecke noch komplexer verschachtelt sind (belegter Block)?\n");
 
     TESTSTART
 
@@ -1753,36 +1878,44 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested4) {
 
     d->size = 100 - sizeof(memblock);
     d->next = e;
+    d->id = 0;
 
     b->size = 200 - sizeof(memblock);
     b->next = c;
+    b->id = 1;
 
     x->size = 100 - sizeof(memblock);
     x->next = (memblock*) MAGIC_INT;
+    x->id = 2;
 
     e->size = 300 - sizeof(memblock);
     e->next = NULL;
+    e->id = 3;
 
     c->size = 400 - sizeof(memblock);
     c->next = d;
+    c->id = 4;
 
     a->size = MEM_POOL_SIZE - 1100 - sizeof(memblock);
     a->next = b;
+    a->id =5;
 
     freemem = a;
 
     cm_defrag();
 
     ASSERT_EQ(freemem, e);
-
     ASSERT_EQ(freemem->size, MEM_POOL_SIZE - 400 - sizeof(memblock));
     ASSERT_EQ(freemem->next, d);
+    ASSERT_EQ(freemem->id, 3);
 
     ASSERT_EQ(d->size, 300 - sizeof(memblock));
     ASSERT_EQ(NULL, d->next);
+    ASSERT_EQ(d->id, 0);
 
     ASSERT_EQ(x->size, 100 - sizeof(memblock));
     ASSERT_EQ(x->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(x->id, 2);
 }
 
 /*
@@ -1792,8 +1925,7 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested4) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag_ptr_nested4_nasty) {
-    PRINT_INFO(
-            "cm_defrag: Reagiert cm_defrag wenn die Bloecke noch komplexer verschachtelt sind (belegter+freier Block)?\n");
+    PRINT_INFO("cm_defrag: Reagiert cm_defrag wenn die Bloecke noch komplexer verschachtelt sind (belegter+freier Block)?\n");
 
     TESTSTART
 
@@ -1809,42 +1941,52 @@ TEST(Speicherverwaltung, test_cm_defrag_ptr_nested4_nasty) {
 
     d->size = 100 - sizeof(memblock);
     d->next = e;
+    d->id = 1;
 
     b->size = 100 - sizeof(memblock);
     b->next = c;
+    b->id = 2;
 
     w->size = 100 - sizeof(memblock);
     w->next = NULL;
+    w->id = 3;
 
     x->size = 100 - sizeof(memblock);
     x->next = (memblock*) MAGIC_INT;
+    x->id = 4;
 
     e->size = 300 - sizeof(memblock);
     e->next = NULL;
+    e->id = 5;
 
     c->size = 400 - sizeof(memblock);
     c->next = d;
+    c->id = 6;
 
     a->size = MEM_POOL_SIZE - 1100 - sizeof(memblock);
     a->next = b;
+    a->id = 7;
 
     freemem = a;
 
     cm_defrag();
 
     ASSERT_EQ(freemem, e);
-
     ASSERT_EQ(freemem->size, MEM_POOL_SIZE - 400 - sizeof(memblock));
     ASSERT_EQ(freemem->next, d);
+    ASSERT_EQ(freemem->id, 5);
 
     ASSERT_EQ(d->size, 200 - sizeof(memblock));
     ASSERT_EQ(NULL, d->next);
+    ASSERT_EQ(d->id, 1);
 
     ASSERT_EQ(w->size, 100 - sizeof(memblock));
     ASSERT_EQ(NULL, w->next);
+    ASSERT_EQ(w->id, 3);
 
     ASSERT_EQ(x->size, 100 - sizeof(memblock));
     ASSERT_EQ(x->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(x->id, 4);
 }
 
 /*
@@ -1871,36 +2013,44 @@ TEST(Speicherverwaltung, test_cm_defrag_sketch) {
 
     w->size = 100 - sizeof(memblock);
     w->next = (memblock*) MAGIC_INT;
+    w->id = 1;
 
     b->size = 200 - sizeof(memblock);
     b->next = c;
+    b->id = 2;
 
     x->size = 300 - sizeof(memblock);
     x->next = (memblock*) MAGIC_INT;
+    x->id = 3;
 
     c->size = 400 - sizeof(memblock);
     c->next = NULL;
+    c->id = 4;
 
     a->size = MEM_POOL_SIZE - 1000 - sizeof(memblock);
     a->next = b;
+    a->id = 5;
 
     freemem = a;
 
     cm_defrag();
 
     ASSERT_EQ(freemem, c);
-
     ASSERT_EQ(freemem->size, MEM_POOL_SIZE - 600 - sizeof(memblock));
     ASSERT_EQ(freemem->next, b);
+    ASSERT_EQ(freemem->id, 4);
 
     ASSERT_EQ(b->size, 200 - sizeof(memblock));
     ASSERT_EQ(NULL, b->next);
+    ASSERT_EQ(b->id, 2);
 
     ASSERT_EQ(w->size, 100 - sizeof(memblock));
     ASSERT_EQ(w->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(w->id, 1);
 
     ASSERT_EQ(x->size, 300 - sizeof(memblock));
     ASSERT_EQ(x->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(x->id, 3);
 }
 
 /*
@@ -1910,8 +2060,7 @@ TEST(Speicherverwaltung, test_cm_defrag_sketch) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag_with_three_free_blocks_one_not_in_freememlist) {
-    PRINT_INFO(
-            "cm_defrag: Werden Bloecke die frei sind aber nicht in der Freispeicherliste sind ignoriert?\n");
+    PRINT_INFO("cm_defrag: Werden Bloecke die frei sind aber nicht in der Freispeicherliste sind ignoriert?\n");
 
     TESTSTART
 
@@ -1920,28 +2069,34 @@ TEST(Speicherverwaltung, test_cm_defrag_with_three_free_blocks_one_not_in_freeme
     a = (memblock*) (mempool + sizeof(memblock) + 100);
     a->size = 100;
     a->next = NULL;
+    a->id = 2;
 
     b = (memblock*) (mempool + sizeof(memblock) * 2 + 200);
     b->size = MEM_POOL_SIZE - (sizeof(memblock) * 3 + 200);
     b->next = NULL;
+    b->id = 1;
 
     freemem = (memblock*) mempool;
     freemem->size = 100;
     freemem->next = b;
+    freemem->id = 9;
 
     cm_defrag();
 
     ASSERT_EQ(freemem, (memblock* ) mempool);
     ASSERT_EQ(freemem->size, 100);
     ASSERT_EQ(freemem->next, b);
+    ASSERT_EQ(freemem->id, 9);
 
     ASSERT_EQ(b, (memblock* )(mempool + sizeof(memblock) * 2 + 200));
     ASSERT_EQ(b->size, MEM_POOL_SIZE - (sizeof(memblock) * 3 + 200));
     ASSERT_EQ(NULL, b->next);
+    ASSERT_EQ(b->id, 1);
 
     ASSERT_EQ(a, (memblock* )(mempool + sizeof(memblock) + 100));
     ASSERT_EQ(a->size, 100);
     ASSERT_EQ(NULL, a->next);
+    ASSERT_EQ(a->id, 2);
 }
 
 /*
@@ -1961,30 +2116,37 @@ TEST(Speicherverwaltung, test_cm_defrag_freemems_outof_bounds) {
     memblock* a = (memblock*) (mempool + sizeof(memblock) + 100);
     a->size = 200 - sizeof(memblock);
     a->next = NULL;
+    a->id = 1;
 
     memblock* b = (memblock*) dummy;
     b->size = 200 - sizeof(memblock);
     b->next = a;
+    b->id = 2;
 
     freemem = (memblock*) mempool;
     freemem->size = 100 - sizeof(memblock);
     freemem->next = b;
+    freemem->id = 3;
 
     cm_defrag();
 
     ASSERT_EQ(a, (memblock* )(mempool + sizeof(memblock) + 100));
     ASSERT_EQ(NULL, a->next);
     ASSERT_EQ(a->size, 200 - sizeof(memblock));
+    ASSERT_EQ(a->id, 1);
 
     ASSERT_EQ(b, (memblock* )dummy);
     ASSERT_EQ(b->next, a);
     ASSERT_EQ(b->size, 200 - sizeof(memblock));
+    ASSERT_EQ(b->id, 2);
 
     ASSERT_EQ(freemem, (memblock* )mempool);
     ASSERT_EQ(freemem->next, b);
     ASSERT_EQ(freemem->size, 100 - sizeof(memblock));
+    ASSERT_EQ(freemem->id, 3);
 }
 
+#ifdef DEFRAG20
 /*
  * Test von cm_defrag20() (freemem ist NULL)
  * 4b, 2
@@ -2003,9 +2165,11 @@ TEST(Speicherverwaltung, test_cm_defrag20_free_mem_null) {
 
     a->size = 200 - sizeof(memblock);
     a->next = (memblock*) MAGIC_INT;
+    a->id = 9;
 
     b->size = MEM_POOL_SIZE - a->size - 2 * sizeof(memblock);
     b->next = (memblock*) MAGIC_INT;
+    b->id = 11;
 
     char mempoolcopy[MEM_POOL_SIZE];
     memcpy(mempoolcopy, mempool, MEM_POOL_SIZE);
@@ -2039,19 +2203,24 @@ TEST(Speicherverwaltung, test_cm_defrag20_not_possible) {
 
     a->size = 200 - sizeof(memblock);
     a->next = c;
+    a->id = 9;
 
     b->size = 200 - sizeof(memblock);
     b->next = (memblock*) MAGIC_INT;
+    b->id = 10;
 
     c->size = 200 - sizeof(memblock);
     c->next = e;
+    c->id = 11;
 
     d->size = 200 - sizeof(memblock);
     d->next = (memblock*) MAGIC_INT;
+    d->id = 12;
 
     e->size = MEM_POOL_SIZE - a->size - b->size - c->size - d->size
             - 5 * sizeof(memblock);
     e->next = NULL;
+    e->id = 13;
 
     freemem = a;
 
@@ -2071,8 +2240,7 @@ TEST(Speicherverwaltung, test_cm_defrag20_not_possible) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag20_ptr_blocks_sorted) {
-    PRINT_INFO(
-            "cm_defrag20: Reagiert cm_defrag wenn die Pointer aufeinander folgenden Blocks?\n");
+    PRINT_INFO("cm_defrag20: Reagiert cm_defrag wenn die Pointer aufeinander folgenden Blocks?\n");
 
     TESTSTART
 
@@ -2083,9 +2251,11 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_blocks_sorted) {
 
     a->size = 200 - sizeof(memblock);
     a->next = b;
+    a->id = 4;
 
     b->size = MEM_POOL_SIZE - a->size - 2 * sizeof(memblock);
     b->next = NULL;
+    b->id = 5;
 
     freemem = a;
 
@@ -2094,6 +2264,7 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_blocks_sorted) {
     ASSERT_EQ(freemem, a);
     ASSERT_EQ(a->size, MEM_POOL_SIZE - sizeof(memblock));
     ASSERT_EQ(NULL, a->next);
+    ASSERT_EQ(a->id, 4);
 }
 
 /*
@@ -2103,8 +2274,7 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_blocks_sorted) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag20_ptr_not_sorted) {
-    PRINT_INFO(
-            "cm_defrag20: Reagiert cm_defrag wenn die Blocks nicht aufeinander folgen?\n");
+    PRINT_INFO("cm_defrag20: Reagiert cm_defrag wenn die Blocks nicht aufeinander folgen?\n");
 
     TESTSTART
 
@@ -2117,16 +2287,20 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_not_sorted) {
 
     a->size = 200 - sizeof(memblock);
     a->next = d;
+    a->id = 1;
 
     b->size = 200 - sizeof(memblock);
     b->next = NULL;
+    b->id = 5;
 
     c->size = 200 - sizeof(memblock);
     c->next = (memblock*) MAGIC_INT;
+    c->id = 11;
 
     d->size = MEM_POOL_SIZE - a->size - b->size - c->size
             - 4 * sizeof(memblock);
     d->next = b;
+    d->id = 12;
 
     freemem = a;
 
@@ -2135,11 +2309,13 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_not_sorted) {
     ASSERT_EQ(freemem, a);
     ASSERT_EQ(a->size, 200 - sizeof(memblock) + b->size + sizeof(memblock));
     ASSERT_EQ(a->next, d);
-    ASSERT_EQ(d->size,
-            MEM_POOL_SIZE - a->size - c->size - 3 * sizeof(memblock));
+    ASSERT_EQ(a->id, 1);
+    ASSERT_EQ(d->size, MEM_POOL_SIZE - a->size - c->size - 3 * sizeof(memblock));
     ASSERT_EQ(NULL, d->next);
+    ASSERT_EQ(d->id, 12);
     ASSERT_EQ(c->size, 200 - sizeof(memblock));
     ASSERT_EQ(c->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(c->id, 11);
 }
 
 /*
@@ -2151,8 +2327,7 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_not_sorted) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag20_two_separate_defrags) {
-    PRINT_INFO(
-            "cm_defrag20: Funktionieren zwei Zusammenfuehrungen mit einem belegten Block in der Mitte?\n");
+    PRINT_INFO("cm_defrag20: Funktionieren zwei Zusammenfuehrungen mit einem belegten Block in der Mitte?\n");
 
     TESTSTART
 
@@ -2166,19 +2341,24 @@ TEST(Speicherverwaltung, test_cm_defrag20_two_separate_defrags) {
 
     a->size = 200 - sizeof(memblock);
     a->next = d;
+    a->id = 1;
 
     b->size = 200 - sizeof(memblock);
     b->next = e;
+    b->id = 2;
 
     c->size = 200 - sizeof(memblock);
     c->next = (memblock*) MAGIC_INT;
+    c->id = 3;
 
     d->size = 400 - sizeof(memblock);
     d->next = b;
+    d->id = 4;
 
     e->size = MEM_POOL_SIZE - a->size - b->size - c->size - d->size
             - 5 * sizeof(memblock);
     e->next = NULL;
+    e->id = 5;
 
     freemem = a;
 
@@ -2187,11 +2367,13 @@ TEST(Speicherverwaltung, test_cm_defrag20_two_separate_defrags) {
     ASSERT_EQ(freemem, a);
     ASSERT_EQ(a->size, 200 - sizeof(memblock) + b->size + sizeof(memblock));
     ASSERT_EQ(a->next, d);
+    ASSERT_EQ(a->id, 1);
     ASSERT_EQ(c->size, 200 - sizeof(memblock));
     ASSERT_EQ(c->next, (memblock*) MAGIC_INT);
-    ASSERT_EQ(d->size,
-            MEM_POOL_SIZE - a->size - c->size - 3 * sizeof(memblock));
+    ASSERT_EQ(c->id, 3);
+    ASSERT_EQ(d->size, MEM_POOL_SIZE - a->size - c->size - 3 * sizeof(memblock));
     ASSERT_EQ(NULL, d->next);
+    ASSERT_EQ(d->id, 4);
 }
 
 /*
@@ -2201,8 +2383,7 @@ TEST(Speicherverwaltung, test_cm_defrag20_two_separate_defrags) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag20_defrag_with_three_free_blocks) {
-    PRINT_INFO(
-            "cm_defrag20: Funktioniert cm_defrag mit 3 freien Bloecken hintereinander?\n");
+    PRINT_INFO("cm_defrag20: Funktioniert cm_defrag mit 3 freien Bloecken hintereinander?\n");
 
     TESTSTART
 
@@ -2216,34 +2397,39 @@ TEST(Speicherverwaltung, test_cm_defrag20_defrag_with_three_free_blocks) {
 
     a->size = 200 - sizeof(memblock);
     a->next = e;
+    a->id = 1;
 
     b->size = 200 - sizeof(memblock);
     b->next = c;
+    b->id = 3;
 
     c->size = 200 - sizeof(memblock);
     c->next = NULL;
+    c-> id = 4;
 
     d->size = 400 - sizeof(memblock);
     d->next = (memblock*) MAGIC_INT;
+    d->id = 2;
 
     e->size = MEM_POOL_SIZE - a->size - b->size - c->size - d->size
             - 5 * sizeof(memblock);
     e->next = b;
+    e->id = 0;
 
     freemem = a;
 
     cm_defrag20();
 
     ASSERT_EQ(freemem, a);
-    ASSERT_EQ(a->size,
-            200 - sizeof(memblock) + b->size + sizeof(memblock) + c->size
-                    + sizeof(memblock));
+    ASSERT_EQ(a->size, 200 - sizeof(memblock) + b->size + sizeof(memblock) + c->size + sizeof(memblock));
     ASSERT_EQ(a->next, e);
+    ASSERT_EQ(a->id, 1);
     ASSERT_EQ(d->size, 400 - sizeof(memblock));
     ASSERT_EQ(d->next, (memblock*) MAGIC_INT);
-    ASSERT_EQ(e->size,
-            MEM_POOL_SIZE - a->size - d->size - 3 * sizeof(memblock));
+    ASSERT_EQ(d->id, 2);
+    ASSERT_EQ(e->size, MEM_POOL_SIZE - a->size - d->size - 3 * sizeof(memblock));
     ASSERT_EQ(NULL, c->next);
+    ASSERT_EQ(e->id, 0);
 }
 
 /*
@@ -2253,8 +2439,7 @@ TEST(Speicherverwaltung, test_cm_defrag20_defrag_with_three_free_blocks) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested) {
-    PRINT_INFO(
-            "cm_defrag20: Reagiert cm_defrag20 wenn die Bloecke verschachtelt sind (kompletter Pool)?\n");
+    PRINT_INFO("cm_defrag20: Reagiert cm_defrag20 wenn die Bloecke verschachtelt sind (kompletter Pool)?\n");
 
     TESTSTART
 
@@ -2267,15 +2452,19 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested) {
 
     d->size = 200 - sizeof(memblock);
     d->next = NULL;
+    d->id = 0;
 
     b->size = 300 - sizeof(memblock);
     b->next = c;
+    b->id = 1;
 
     a->size = 400 - sizeof(memblock);
     a->next = b;
+    a->id = 2;
 
     c->size = MEM_POOL_SIZE - 900 - sizeof(memblock);
     c->next = d;
+    c->id = 3;
 
     freemem = a;
 
@@ -2284,6 +2473,7 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested) {
     ASSERT_EQ(freemem, d);
     ASSERT_EQ(freemem->size, MEM_POOL_SIZE - sizeof(memblock));
     ASSERT_EQ(NULL, freemem->next);
+    ASSERT_EQ(freemem->id, 0);
 }
 
 /*
@@ -2293,8 +2483,7 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested_front) {
-    PRINT_INFO(
-            "cm_defrag20: Reagiert cm_defrag20 wenn die Bloecke verschachtelt sind (belegter Block vorn)?\n");
+    PRINT_INFO("cm_defrag20: Reagiert cm_defrag20 wenn die Bloecke verschachtelt sind (belegter Block vorn)?\n");
 
     TESTSTART
 
@@ -2308,18 +2497,23 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested_front) {
 
     x->size = 100 - sizeof(memblock);
     x->next = (memblock*) MAGIC_INT;
+    x->id = 1;
 
     d->size = 100 - sizeof(memblock);
     d->next = NULL;
+    d->id = 2;
 
     b->size = 300 - sizeof(memblock);
     b->next = c;
+    b->id = 3;
 
     a->size = 400 - sizeof(memblock);
     a->next = b;
+    a->id = 9;
 
     c->size = MEM_POOL_SIZE - 900 - sizeof(memblock);
     c->next = d;
+    c->id = 5;
 
     freemem = a;
 
@@ -2328,8 +2522,10 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested_front) {
     ASSERT_EQ(freemem, d);
     ASSERT_EQ(freemem->size, MEM_POOL_SIZE - 100 - sizeof(memblock));
     ASSERT_EQ(NULL, freemem->next);
+    ASSERT_EQ(freemem->id, 2);
     ASSERT_EQ(x->size, 100 - sizeof(memblock));
     ASSERT_EQ(x->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(x->id, 1);
 }
 
 /*
@@ -2339,8 +2535,7 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested_front) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested_end) {
-    PRINT_INFO(
-            "cm_defrag20: Reagiert cm_defrag20 wenn die Bloecke verschachtelt sind (belegter Block hinten)?\n");
+    PRINT_INFO("cm_defrag20: Reagiert cm_defrag20 wenn die Bloecke verschachtelt sind (belegter Block hinten)?\n");
 
     TESTSTART
 
@@ -2354,18 +2549,23 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested_end) {
 
     d->size = 200 - sizeof(memblock);
     d->next = NULL;
+    d->id = 1;
 
     b->size = 300 - sizeof(memblock);
     b->next = c;
+    b->id = 2;
 
     a->size = 400 - sizeof(memblock);
     a->next = b;
+    a->id = 3;
 
     c->size = 500 - sizeof(memblock);
     c->next = d;
+    c->id = 4;
 
     x->size = MEM_POOL_SIZE - 1400 - sizeof(memblock);
     x->next = (memblock*) MAGIC_INT;
+    x->id = 5;
 
     freemem = a;
 
@@ -2374,8 +2574,10 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested_end) {
     ASSERT_EQ(freemem, d);
     ASSERT_EQ(freemem->size, 1400 - sizeof(memblock));
     ASSERT_EQ(NULL, freemem->next);
+    ASSERT_EQ(freemem->id, 1);
     ASSERT_EQ(x->size, MEM_POOL_SIZE - 1400 - sizeof(memblock));
     ASSERT_EQ(x->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(x->id, 5);
 }
 
 /*
@@ -2385,8 +2587,7 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested_end) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested2) {
-    PRINT_INFO(
-            "cm_defrag20: Reagiert cm_defrag20 wenn die Bloecke komplexer verschachtelt sind (kompletter Pool)?\n");
+    PRINT_INFO("cm_defrag20: Reagiert cm_defrag20 wenn die Bloecke komplexer verschachtelt sind (kompletter Pool)?\n");
 
     TESTSTART
 
@@ -2399,15 +2600,19 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested2) {
 
     d->size = 200 - sizeof(memblock);
     d->next = NULL;
+    d->id = 9;
 
     a->size = 300 - sizeof(memblock);
     a->next = b;
+    a->id = 10;
 
     c->size = 400 - sizeof(memblock);
     c->next = d;
+    c->id = 2;
 
     b->size = MEM_POOL_SIZE - 900 - sizeof(memblock);
     b->next = c;
+    b->id = 5;
 
     freemem = a;
 
@@ -2416,6 +2621,7 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested2) {
     ASSERT_EQ(freemem, d);
     ASSERT_EQ(freemem->size, MEM_POOL_SIZE - sizeof(memblock));
     ASSERT_EQ(NULL, freemem->next);
+    ASSERT_EQ(freemem->id, 9);
 }
 
 /*
@@ -2425,8 +2631,7 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested2) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested2_front) {
-    PRINT_INFO(
-            "cm_defrag20: Reagiert cm_defrag20 wenn die Bloecke komplexer verschachtelt sind (belegter Block vorn)?\n");
+    PRINT_INFO("cm_defrag20: Reagiert cm_defrag20 wenn die Bloecke komplexer verschachtelt sind (belegter Block vorn)?\n");
 
     TESTSTART
 
@@ -2440,18 +2645,23 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested2_front) {
 
     x->size = 100 - sizeof(memblock);
     x->next = (memblock*) MAGIC_INT;
+    x->id = 3;
 
     d->size = 100 - sizeof(memblock);
     d->next = NULL;
+    d->id = 2;
 
     a->size = 300 - sizeof(memblock);
     a->next = b;
+    a->id = 10;
 
     c->size = 400 - sizeof(memblock);
     c->next = d;
+    c->id = 1;
 
     b->size = MEM_POOL_SIZE - 900 - sizeof(memblock);
     b->next = c;
+    b->id = 11;
 
     freemem = a;
 
@@ -2460,8 +2670,10 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested2_front) {
     ASSERT_EQ(freemem, d);
     ASSERT_EQ(freemem->size, MEM_POOL_SIZE - 100 - sizeof(memblock));
     ASSERT_EQ(NULL, freemem->next);
+    ASSERT_EQ(freemem->id, 2);
     ASSERT_EQ(x->size, 100 - sizeof(memblock));
     ASSERT_EQ(x->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(x->id, 3);
 }
 
 /*
@@ -2471,8 +2683,7 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested2_front) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested2_middle) {
-    PRINT_INFO(
-            "cm_defrag20: Reagiert cm_defrag20 wenn die Bloecke komplexer verschachtelt sind (belegter Block mitte)?\n");
+    PRINT_INFO("cm_defrag20: Reagiert cm_defrag20 wenn die Bloecke komplexer verschachtelt sind (belegter Block mitte)?\n");
 
     TESTSTART
 
@@ -2486,18 +2697,23 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested2_middle) {
 
     d->size = 200 - sizeof(memblock);
     d->next = NULL;
+    d->id = 1;
 
     a->size = 200 - sizeof(memblock);
     a->next = b;
+    a->id = 2;
 
     x->size = 100 - sizeof(memblock);
     x->next = (memblock*) MAGIC_INT;
+    x->id = 3;
 
     c->size = 400 - sizeof(memblock);
     c->next = d;
+    c->id = 4;
 
     b->size = MEM_POOL_SIZE - 900 - sizeof(memblock);
     b->next = c;
+    b->id = 5;
 
     freemem = a;
 
@@ -2506,10 +2722,13 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested2_middle) {
     ASSERT_EQ(freemem, d);
     ASSERT_EQ(freemem->size, 400 - sizeof(memblock));
     ASSERT_EQ(freemem->next, c);
+    ASSERT_EQ(freemem->id, 1);
     ASSERT_EQ(c->size, MEM_POOL_SIZE - 500 - sizeof(memblock));
     ASSERT_EQ(NULL, c->next);
+    ASSERT_EQ(c->id, 4);
     ASSERT_EQ(x->size, 100 - sizeof(memblock));
     ASSERT_EQ(x->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(x->id, 3);
 }
 
 /*
@@ -2519,8 +2738,7 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested2_middle) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested2_end) {
-    PRINT_INFO(
-            "cm_defrag20: Reagiert cm_defrag20 wenn die Bloecke komplexer verschachtelt sind (belegter Block hinten)?\n");
+    PRINT_INFO("cm_defrag20: Reagiert cm_defrag20 wenn die Bloecke komplexer verschachtelt sind (belegter Block hinten)?\n");
 
     TESTSTART
 
@@ -2534,18 +2752,23 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested2_end) {
 
     d->size = 200 - sizeof(memblock);
     d->next = NULL;
+    d->id = 1;
 
     a->size = 300 - sizeof(memblock);
     a->next = b;
+    a->id = 2;
 
     c->size = 400 - sizeof(memblock);
     c->next = d;
+    c->id = 3;
 
     b->size = 500 - sizeof(memblock);
     b->next = c;
+    b->id = 4;
 
     x->size = MEM_POOL_SIZE - 1400 - sizeof(memblock);
     x->next = (memblock*) MAGIC_INT;
+    x->id = 5;
 
     freemem = a;
 
@@ -2554,8 +2777,10 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested2_end) {
     ASSERT_EQ(freemem, d);
     ASSERT_EQ(freemem->size, 1400 - sizeof(memblock));
     ASSERT_EQ(NULL, freemem->next);
+    ASSERT_EQ(freemem->id, 1);
     ASSERT_EQ(x->size, MEM_POOL_SIZE - 1400 - sizeof(memblock));
     ASSERT_EQ(x->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(x->id, 5);
 }
 
 /*
@@ -2565,8 +2790,7 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested2_end) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested3) {
-    PRINT_INFO(
-            "cm_defrag20: Reagiert cm_defrag20 wenn die Bloecke noch komplexer verschachtelt sind (kompletter Pool)?\n");
+    PRINT_INFO("cm_defrag20: Reagiert cm_defrag20 wenn die Bloecke noch komplexer verschachtelt sind (kompletter Pool)?\n");
 
     TESTSTART
 
@@ -2579,15 +2803,19 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested3) {
 
     b->size = 200 - sizeof(memblock);
     b->next = c;
+    b->id = 1;
 
     c->size = 300 - sizeof(memblock);
     c->next = d;
+    c->id = 3;
 
     d->size = 400 - sizeof(memblock);
     d->next = NULL;
+    d->id = 2;
 
     a->size = MEM_POOL_SIZE - 900 - sizeof(memblock);
     a->next = b;
+    a->id = 10;
 
     freemem = a;
 
@@ -2596,6 +2824,7 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested3) {
     ASSERT_EQ(freemem, b);
     ASSERT_EQ(freemem->size, MEM_POOL_SIZE - sizeof(memblock));
     ASSERT_EQ(NULL, freemem->next);
+    ASSERT_EQ(freemem->id, 1);
 }
 
 /*
@@ -2605,8 +2834,7 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested3) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested4) {
-    PRINT_INFO(
-            "cm_defrag20: Reagiert cm_defrag20 wenn die Bloecke noch komplexer verschachtelt sind (belegter Block)?\n");
+    PRINT_INFO("cm_defrag20: Reagiert cm_defrag20 wenn die Bloecke noch komplexer verschachtelt sind (belegter Block)?\n");
 
     TESTSTART
 
@@ -2621,36 +2849,44 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested4) {
 
     d->size = 100 - sizeof(memblock);
     d->next = e;
+    d->id = 2;
 
     b->size = 200 - sizeof(memblock);
     b->next = c;
+    b->id = 3;
 
     x->size = 100 - sizeof(memblock);
     x->next = (memblock*) MAGIC_INT;
+    x->id = 4;
 
     e->size = 300 - sizeof(memblock);
     e->next = NULL;
+    e->id = 1;
 
     c->size = 400 - sizeof(memblock);
     c->next = d;
+    c->id = 5;
 
     a->size = MEM_POOL_SIZE - 1100 - sizeof(memblock);
     a->next = b;
+    a->id = 9;
 
     freemem = a;
 
     cm_defrag20();
 
     ASSERT_EQ(freemem, d);
-
     ASSERT_EQ(freemem->size, 300 - sizeof(memblock));
     ASSERT_EQ(freemem->next, e);
+    ASSERT_EQ(freemem->id, 2);
 
     ASSERT_EQ(e->size, MEM_POOL_SIZE - 400 - sizeof(memblock));
     ASSERT_EQ(NULL, e->next);
+    ASSERT_EQ(e->id, 1);
 
     ASSERT_EQ(x->size, 100 - sizeof(memblock));
     ASSERT_EQ(x->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(x->id, 4);
 }
 
 /*
@@ -2660,8 +2896,7 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested4) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested4_nasty) {
-    PRINT_INFO(
-            "cm_defrag20: Reagiert cm_defrag20 wenn die Bloecke noch komplexer verschachtelt sind (belegter+freier Block)?\n");
+    PRINT_INFO("cm_defrag20: Reagiert cm_defrag20 wenn die Bloecke noch komplexer verschachtelt sind (belegter+freier Block)?\n");
 
     TESTSTART
 
@@ -2677,39 +2912,48 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested4_nasty) {
 
     d->size = 100 - sizeof(memblock);
     d->next = e;
+    d->id = 9;
 
     b->size = 100 - sizeof(memblock);
     b->next = c;
+    b->id = 8;
 
     w->size = 100 - sizeof(memblock);
     w->next = NULL;
+    w->id = 7;
 
     x->size = 100 - sizeof(memblock);
     x->next = (memblock*) MAGIC_INT;
+    x->id = 6;
 
     e->size = 300 - sizeof(memblock);
     e->next = NULL;
+    e->id = 5;
 
     c->size = 400 - sizeof(memblock);
     c->next = d;
+    c->id = 4;
 
     a->size = MEM_POOL_SIZE - 1100 - sizeof(memblock);
     a->next = b;
+    a->id = 3;
 
     freemem = a;
 
     cm_defrag20();
 
     ASSERT_EQ(freemem, d);
-
     ASSERT_EQ(freemem->size, 300 - sizeof(memblock));
     ASSERT_EQ(freemem->next, e);
+    ASSERT_EQ(freemem->id, 9);
 
     ASSERT_EQ(e->size, MEM_POOL_SIZE - 400 - sizeof(memblock));
     ASSERT_EQ(NULL, e->next);
+    ASSERT_EQ(e->id, 5);
 
     ASSERT_EQ(x->size, 100 - sizeof(memblock));
     ASSERT_EQ(x->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(x->id, 6);
 }
 
 /*
@@ -2719,8 +2963,7 @@ TEST(Speicherverwaltung, test_cm_defrag20_ptr_nested4_nasty) {
  * @return void
  */
 TEST(Speicherverwaltung, test_cm_defrag20_not_possible_nasty) {
-    PRINT_INFO(
-            "cm_defrag20: Was passiert wenn kein Defrag moeglich ist (Umsortierung Liste)?\n");
+    PRINT_INFO("cm_defrag20: Was passiert wenn kein Defrag moeglich ist (Umsortierung Liste)?\n");
 
     TESTSTART
 
@@ -2734,19 +2977,24 @@ TEST(Speicherverwaltung, test_cm_defrag20_not_possible_nasty) {
 
     a->size = 200 - sizeof(memblock);
     a->next = NULL;
+    a->id = 20;
 
     b->size = 200 - sizeof(memblock);
     b->next = (memblock*) MAGIC_INT;
+    b->id = 10;
 
     c->size = 200 - sizeof(memblock);
     c->next = a;
+    c->id = 30;
 
     d->size = 200 - sizeof(memblock);
     d->next = (memblock*) MAGIC_INT;
+    d->id = 25;
 
     e->size = MEM_POOL_SIZE - a->size - b->size - c->size - d->size
             - 5 * sizeof(memblock);
     e->next = c;
+    e->id = 0;
 
     freemem = e;
 
@@ -2755,18 +3003,23 @@ TEST(Speicherverwaltung, test_cm_defrag20_not_possible_nasty) {
     ASSERT_EQ(freemem, a);
     ASSERT_EQ(freemem->size, 200 - sizeof(memblock));
     ASSERT_EQ(freemem->next, c);
+    ASSERT_EQ(freemem->id, 20);
 
     ASSERT_EQ(c->size, 200 - sizeof(memblock));
     ASSERT_EQ(c->next, e);
+    ASSERT_EQ(c->id, 30);
 
     ASSERT_EQ(e->size, MEM_POOL_SIZE - 800 - sizeof(memblock));
     ASSERT_EQ(NULL, e->next);
+    ASSERT_EQ(e->id, 0);
 
     ASSERT_EQ(b->size, 200 - sizeof(memblock));
     ASSERT_EQ(b->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(b->id, 10);
 
     ASSERT_EQ(d->size, 200 - sizeof(memblock));
     ASSERT_EQ(d->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(d->id, 25);
 }
 
 /*
@@ -2791,37 +3044,46 @@ TEST(Speicherverwaltung, test_cm_defrag20_sketch) {
 
     w->size = 100 - sizeof(memblock);
     w->next = (memblock*) MAGIC_INT;
+    w->id = 9;
 
     b->size = 200 - sizeof(memblock);
     b->next = c;
+    b->id = 10;
 
     x->size = 300 - sizeof(memblock);
     x->next = (memblock*) MAGIC_INT;
+    x->id = 11;
 
     c->size = 400 - sizeof(memblock);
     c->next = NULL;
+    c->id = 8;
 
     a->size = MEM_POOL_SIZE - 1000 - sizeof(memblock);
     a->next = b;
+    a->id = 7;
 
     freemem = a;
 
     cm_defrag20();
 
     ASSERT_EQ(freemem, b);
-
     ASSERT_EQ(freemem->size, 200 - sizeof(memblock));
     ASSERT_EQ(freemem->next, c);
+    ASSERT_EQ(freemem->id, 10);
 
     ASSERT_EQ(c->size, MEM_POOL_SIZE - 600 - sizeof(memblock));
     ASSERT_EQ(NULL, c->next);
+    ASSERT_EQ(c->id, 8);
 
     ASSERT_EQ(w->size, 100 - sizeof(memblock));
     ASSERT_EQ(w->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(w->id, 9);
 
     ASSERT_EQ(x->size, 300 - sizeof(memblock));
     ASSERT_EQ(x->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(x->id, 11);
 }
+#endif  // DEFRAG20
 
 /* ************************************************************************* */
 
@@ -2898,6 +3160,7 @@ TEST(Speicherverwaltung, test_cm_memcpy_size_null) {
     dBlock = (memblock*) mempool;
     dBlock->size = 35;
     dBlock->next = (memblock*) MAGIC_INT;
+    dBlock->id = 2;
     dest = mempool + sizeof(memblock);
     d = (char*) dest;
     d = cm_memcpy_helpsentence_32(d);
@@ -2905,6 +3168,7 @@ TEST(Speicherverwaltung, test_cm_memcpy_size_null) {
     sBlock = (memblock*) (mempool + dBlock->size + sizeof(memblock));
     sBlock->size = 35;
     sBlock->next = (memblock*) MAGIC_INT;
+    sBlock->id = 1;
     src = mempool + 2 * sizeof(memblock) + dBlock->size;
     s = (char*) src;
     s = cm_memcpy_helpsentence_random(s, sBlock->size);
@@ -2936,6 +3200,7 @@ TEST(Speicherverwaltung, test_cm_memcpy_dest_null) {
     sBlock = (memblock*) mempool;
     sBlock->size = rtc;
     sBlock->next = (memblock*) MAGIC_INT;
+    sBlock->id = 5;
     src = mempool + 1;
     s = (char*) src;
     s = cm_memcpy_helpsentence_random(s, rtc);
@@ -2970,6 +3235,7 @@ TEST(Speicherverwaltung, test_cm_memcpy_src_null) {
     dBlock = (memblock*) mempool;
     dBlock->size = rtc;
     dBlock->next = (memblock*) MAGIC_INT;
+    dBlock->id = 8;
     dest = mempool + sizeof(memblock);
     d = (char*) dest;
     d = cm_memcpy_helpsentence_random(d, rtc);
@@ -3003,6 +3269,7 @@ TEST(Speicherverwaltung, test_cm_memcpy) {
     dBlock = (memblock*) mempool;
     dBlock->size = 20;
     dBlock->next = (memblock*) MAGIC_INT;
+    dBlock->id = 3;
     dest = mempool + sizeof(memblock);
     d = (char*) dest;
     *d = 'x';
@@ -3018,6 +3285,7 @@ TEST(Speicherverwaltung, test_cm_memcpy) {
     sBlock = (memblock*) (mempool + dBlock->size + sizeof(memblock));
     sBlock->size = 100;
     sBlock->next = (memblock*) MAGIC_INT;
+    sBlock->id = 4;
     src = mempool + 2 * sizeof(memblock) + dBlock->size;
     s = (char*) src;
     *s = 'H';
@@ -3075,6 +3343,7 @@ TEST(Speicherverwaltung, test_cm_memcpy_dest_too_small) {
     dBlock = (memblock*) mempool;
     dBlock->size = 32;
     dBlock->next = (memblock*) MAGIC_INT;
+    dBlock->id = 2;
     dest = dBlock + 1;
     d = (char*) dest;
     d = cm_memcpy_helpsentence_32(d);
@@ -3082,6 +3351,7 @@ TEST(Speicherverwaltung, test_cm_memcpy_dest_too_small) {
     sBlock = (memblock*) (&mempool[MEM_POOL_SIZE - 1] - 100 - sizeof(memblock));
     sBlock->size = 100;
     sBlock->next = (memblock*) MAGIC_INT;
+    sBlock->id = 8;
     src = sBlock + 1;
     s = (char*) src;
     s = cm_memcpy_helpsentence_random(s, sBlock->size);
@@ -3091,6 +3361,7 @@ TEST(Speicherverwaltung, test_cm_memcpy_dest_too_small) {
     zBlock = (memblock*) ((char*) (dBlock + 1) + dBlock->size);
     zBlock->size = MEM_POOL_SIZE - 2 * sizeof(memblock) - dBlock->size
             - sBlock->size;
+    zBlock->id = 9;
 
     ASSERT_NE(memcmp(d, s, rtc), 0);
 
@@ -3121,6 +3392,7 @@ TEST(Speicherverwaltung, test_cm_memcpy_heart_bleed_bug) {
     dBlock = (memblock*) mempool;
     dBlock->size = 100;
     dBlock->next = (memblock*) MAGIC_INT;
+    dBlock->id = 9;
     dest = dBlock + 1;
     d = (char*) dest;
     for (int i = 0; (size_t) i < dBlock->size; i++) {
@@ -3130,6 +3402,7 @@ TEST(Speicherverwaltung, test_cm_memcpy_heart_bleed_bug) {
     sBlock = (memblock*) (mempool + dBlock->size + sizeof(memblock));
     sBlock->size = 25;
     sBlock->next = (memblock*) MAGIC_INT;
+    sBlock->id = 2;
     src = sBlock + 1;
     s = (char*) src;
     s = cm_memcpy_helpsentence_32(s);
@@ -3138,11 +3411,13 @@ TEST(Speicherverwaltung, test_cm_memcpy_heart_bleed_bug) {
             + (2 * sizeof(memblock)));
     sBlock->size = 100;
     sBlock->next = (memblock*) MAGIC_INT;
+    sBlock->id = 3;
 
     eBlock = (memblock*) (mempool + dBlock->size + sBlock->size
             + (2 * sizeof(memblock)));
     eBlock->size = 200;
     eBlock->next = (memblock*) MAGIC_INT;
+    eBlock->id = 4;
 
     ASSERT_NE(memcmp(d, s, rtc), 0);
 
@@ -3173,6 +3448,7 @@ TEST(Speicherverwaltung, test_cm_memcpy_dest_overlaps_src) {
     dBlock = (memblock*) mempool;
     dBlock->size = rtc;
     dBlock->next = (memblock*) MAGIC_INT;
+    dBlock->id = 9;
     dest = dBlock + 1;
     d = (char*) dest;
     d = cm_memcpy_helpsentence_random(d, dBlock->size);
@@ -3180,6 +3456,7 @@ TEST(Speicherverwaltung, test_cm_memcpy_dest_overlaps_src) {
     sBlock = (memblock*) (mempool + dBlock->size + sizeof(memblock));
     sBlock->size = rtc * 3;
     sBlock->next = (memblock*) MAGIC_INT;
+    sBlock->id = 2;
     src = sBlock + 1;
     s = (char*) src;
     s = cm_memcpy_helpsentence_random(s, sBlock->size);
@@ -3242,6 +3519,7 @@ TEST(Speicherverwaltung, test_cm_memcpy_src_overlaps_dest) {
     sBlock = (memblock*) mempool;
     sBlock->size = rtc + 2;
     sBlock->next = (memblock*) MAGIC_INT;
+    sBlock->id = 8;
     src = sBlock + 1;
     s = (char*) src;
     s = cm_memcpy_helpsentence_random(s, sBlock->size);
@@ -3249,6 +3527,7 @@ TEST(Speicherverwaltung, test_cm_memcpy_src_overlaps_dest) {
     dBlock = (memblock*) (mempool + sBlock->size + sizeof(memblock));
     dBlock->size = rtc - 1;
     dBlock->next = (memblock*) MAGIC_INT;
+    dBlock->id = 7;
     dest = dBlock + 1;
     d = (char*) dest;
     d = cm_memcpy_helpsentence_random(d, dBlock->size);
@@ -3281,13 +3560,10 @@ TEST(Speicherverwaltung, test_cm_memcpy_src_overlaps_dest) {
     ASSERT_EQ(memcmp(&c1, d + sBlock->size, sizeof(memblock)), 0);
 
     /* zweiter Teil */
-    ASSERT_EQ(
-            memcmp(d + sBlock->size + sizeof(memblock), d,
-                    dBlock->size - sizeof(memblock)), 0);
+    ASSERT_EQ(memcmp(d + sBlock->size + sizeof(memblock), d, dBlock->size - sizeof(memblock)), 0);
 
     /* stimmen die letzten manuell eingefuegten bytes noch ueberein */
-    ASSERT_EQ(memcmp(d + sBlock->size + dBlock->size, a_alt + dBlock->size, 2),
-            0);
+    ASSERT_EQ(memcmp(d + sBlock->size + dBlock->size, a_alt + dBlock->size, 2), 0);
 
     /* Rueckgabe sollte auch passen */
     ASSERT_EQ(ptr, dest);
@@ -3314,6 +3590,7 @@ TEST(Speicherverwaltung, test_cm_memcpy_dest_src_equal) {
     dBlock = (memblock*) mempool;
     dBlock->size = rtc;
     dBlock->next = (memblock*) MAGIC_INT;
+    dBlock->id = 8;
     dest = mempool + sizeof(memblock);
     d = (char*) dest;
 
@@ -3349,6 +3626,7 @@ TEST(Speicherverwaltung, test_cm_memcpy_dest_wrong_next) {
     dBlock = (memblock*) mempool;
     dBlock->size = rtc;
     dBlock->next = NULL;
+    dBlock->id = 0;
     dest = mempool + sizeof(memblock);
     d = (char*) dest;
     d = cm_memcpy_helpsentence_random(d, rtc);
@@ -3356,6 +3634,7 @@ TEST(Speicherverwaltung, test_cm_memcpy_dest_wrong_next) {
     sBlock = (memblock*) (mempool + dBlock->size + sizeof(memblock));
     sBlock->size = rtc;
     sBlock->next = (memblock*) MAGIC_INT;
+    sBlock->id = 9;
     src = mempool + 2 * sizeof(memblock) + dBlock->size;
     s = (char*) src;
     s = cm_memcpy_helpsentence_32(s);
@@ -3395,6 +3674,7 @@ TEST(Speicherverwaltung, test_cm_memcpy_src_wrong_next) {
     dBlock = (memblock*) mempool;
     dBlock->size = rtc;
     dBlock->next = (memblock*) MAGIC_INT;
+    dBlock->id = 9;
     dest = mempool + sizeof(memblock);
     d = (char*) dest;
     d = cm_memcpy_helpsentence_random(d, rtc);
@@ -3402,6 +3682,7 @@ TEST(Speicherverwaltung, test_cm_memcpy_src_wrong_next) {
     sBlock = (memblock*) (mempool + dBlock->size + sizeof(memblock));
     sBlock->size = rtc;
     sBlock->next = NULL;
+    sBlock->id = 2;
     src = mempool + 2 * sizeof(memblock) + dBlock->size;
     s = (char*) src;
     s = cm_memcpy_helpsentence_32(s);
@@ -3444,6 +3725,7 @@ TEST(Speicherverwaltung, test_cm_memcpy_dest_local) {
     dBlock = (memblock*) dummy;
     dBlock->size = rtc;
     dBlock->next = (memblock*) MAGIC_INT;
+    dBlock->id = 8;
     dest = dummy + sizeof(memblock);
     d = (char*) dest;
     d = cm_memcpy_helpsentence_random(d, rtc);
@@ -3451,6 +3733,7 @@ TEST(Speicherverwaltung, test_cm_memcpy_dest_local) {
     sBlock = (memblock*) (mempool + dBlock->size + sizeof(memblock));
     sBlock->size = rtc;
     sBlock->next = (memblock*) MAGIC_INT;
+    sBlock->id = 6;
     src = mempool + 2 * sizeof(memblock) + dBlock->size;
     s = (char*) src;
     s = cm_memcpy_helpsentence_32(s);
@@ -3493,6 +3776,7 @@ TEST(Speicherverwaltung, test_cm_memcpy_src_local) {
     dBlock = (memblock*) mempool;
     dBlock->size = rtc;
     dBlock->next = (memblock*) MAGIC_INT;
+    dBlock->id = 5;
     dest = mempool + sizeof(memblock);
     d = (char*) dest;
     d = cm_memcpy_helpsentence_random(d, rtc);
@@ -3500,6 +3784,7 @@ TEST(Speicherverwaltung, test_cm_memcpy_src_local) {
     sBlock = (memblock*) dummy;
     sBlock->size = rtc;
     sBlock->next = (memblock*) MAGIC_INT;
+    sBlock->id = 10;
     src = dummy + sizeof(memblock);
     s = (char*) src;
     s = cm_memcpy_helpsentence_32(s);
@@ -3528,9 +3813,8 @@ TEST(Speicherverwaltung, test_cm_memcpy_src_local) {
  * @param void
  */
 TEST(Speicherverwaltung, test_cm_realloc_do_nothing) {
-    PRINT_INFO("cm_realloc: Null Pointer und Size kleiner 0?\n");
+    PRINT_INFO("cm_realloc: ptr != NULL, ptr->Nutzbereich == size?\n");
 
-    init_heap(); // wichtig, damit malloc() nicht den speziell praeparierten mempool zuruecksetzt!
     TESTSTART
 
     memblock *block, *tmp;
@@ -3539,10 +3823,12 @@ TEST(Speicherverwaltung, test_cm_realloc_do_nothing) {
     freemem = (memblock*) (mempool + 20 + sizeof(memblock));
     freemem->size = 100;
     freemem->next = NULL;
+    freemem->id = 9;
 
     block = (memblock*) mempool;
     block->size = 20;
     block->next = (memblock*) MAGIC_INT;
+    block->id = 7;
     s = mempool + sizeof(memblock);
 
     char mempoolcopy[MEM_POOL_SIZE];
@@ -3553,8 +3839,10 @@ TEST(Speicherverwaltung, test_cm_realloc_do_nothing) {
 
     ASSERT_EQ(t, s);
     ASSERT_EQ(((memblock* ) t - 1)->size, block->size);
+    ASSERT_EQ(((memblock* ) t - 1)->id, 7);
     ASSERT_EQ(freemem, tmp);
     ASSERT_EQ(memcmp(mempoolcopy, mempool, MEM_POOL_SIZE), 0);
+    ASSERT_EQ(freemem->id, 9);
 }
 
 /*
@@ -3566,7 +3854,6 @@ TEST(Speicherverwaltung, test_cm_realloc_do_nothing) {
 TEST(Speicherverwaltung, test_cm_realloc_call_cm_malloc) {
     PRINT_INFO("cm_realloc: Null Pointer und Size ungleich 0?\n");
 
-    init_heap(); // wichtig, damit malloc() nicht den speziell praeparierten mempool zuruecksetzt!
     TESTSTART
 
     void *tmp = NULL;
@@ -3574,12 +3861,15 @@ TEST(Speicherverwaltung, test_cm_realloc_call_cm_malloc) {
     freemem = (memblock*) mempool;
     freemem->size = 100;
     freemem->next = NULL;
+    freemem->id = 9;
 
     tmp = cm_realloc(tmp, 100);
+    ++id;
 
     ASSERT_EQ(tmp, (memblock* ) mempool + 1);
     ASSERT_EQ(((memblock* ) tmp - 1)->size, 100);
     ASSERT_EQ(((memblock* ) tmp - 1)->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(((memblock* ) tmp - 1)->id, id);
     ASSERT_EQ(NULL, freemem);
 }
 
@@ -3592,7 +3882,6 @@ TEST(Speicherverwaltung, test_cm_realloc_call_cm_malloc) {
 TEST(Speicherverwaltung, test_cm_realloc_call_cm_free) {
     PRINT_INFO("cm_realloc: Kein Null Pointer und Size gleich 0?\n");
 
-    init_heap(); // wichtig, damit malloc() nicht den speziell praeparierten mempool zuruecksetzt!
     TESTSTART
 
     memblock *a, *oldFreeMem;
@@ -3601,11 +3890,13 @@ TEST(Speicherverwaltung, test_cm_realloc_call_cm_free) {
     a = (memblock*) mempool;
     a->size = 100;
     a->next = (memblock*) MAGIC_INT;
+    a->id = 9;
     b = (void*) (a + 1);
 
     freemem = (memblock*) (mempool + 100 + sizeof(memblock));
     freemem->size = MEM_POOL_SIZE - 100 + 2 * sizeof(memblock);
     freemem->next = NULL;
+    freemem->id = 7;
     oldFreeMem = freemem;
 
     ptr = cm_realloc(b, 0);
@@ -3614,6 +3905,7 @@ TEST(Speicherverwaltung, test_cm_realloc_call_cm_free) {
     ASSERT_EQ(freemem, a);
     ASSERT_EQ(a->size, 100);
     ASSERT_EQ(a->next, oldFreeMem);
+    ASSERT_EQ(a->id, 9);
     ASSERT_EQ(oldFreeMem->size, MEM_POOL_SIZE - 100 + 2 * sizeof(memblock));
     ASSERT_EQ(NULL, oldFreeMem->next);
 }
@@ -3624,7 +3916,6 @@ TEST(Speicherverwaltung, test_cm_realloc_call_cm_free) {
 TEST(Speicherverwaltung, test_cm_realloc_null_0) {
     PRINT_INFO("cm_realloc: Null Pointer und Size gleich 0\n");
 
-    init_heap(); // wichtig, damit malloc() nicht den speziell praeparierten mempool zuruecksetzt!
     TESTSTART
 
     char mempoolcopy[MEM_POOL_SIZE];
@@ -3645,7 +3936,6 @@ TEST(Speicherverwaltung, test_cm_realloc_null_0) {
 TEST(Speicherverwaltung, test_cm_realloc_enlarge) {
     PRINT_INFO("cm_realloc: Vergroessert sich der Speicher?\n");
 
-    init_heap(); // wichtig, damit malloc() nicht den speziell praeparierten mempool zuruecksetzt!
     TESTSTART
 
     memblock *a, *b, *c;
@@ -3655,10 +3945,13 @@ TEST(Speicherverwaltung, test_cm_realloc_enlarge) {
     a = (memblock*) mempool;
     a->size = 100 - sizeof(memblock);
     a->next = (memblock*) MAGIC_INT;
+    a->id = 8;
 
     b = (memblock*) (mempool + 100);
     b->size = 1000;
     b->next = NULL;
+    b->id = 7;
+
     freemem = b;
     c = b;
 
@@ -3682,17 +3975,19 @@ TEST(Speicherverwaltung, test_cm_realloc_enlarge) {
     *(strNeu + 6) = 'g';
 
     neu = cm_realloc(nutzbereich, 200);
+    ++id;
     strNeu = (char*) neu;
 
     ASSERT_EQ(freemem, a);
     ASSERT_EQ(a->size, 100 - sizeof(memblock));
-    ASSERT_EQ(a->next,
-            (memblock* ) ((char* ) (c) + 200 + sizeof(memblock)));
+    ASSERT_EQ(a->next, (memblock* ) ((char* ) (c) + 200 + sizeof(memblock)));
+    ASSERT_EQ(a->id, 8);
     ASSERT_EQ(a->next->size, 1000 - 200 - sizeof(memblock));
     ASSERT_EQ(NULL, a->next->next);
     ASSERT_EQ(neu, (void* ) (b + 1));
     ASSERT_EQ(b->size, 200);
     ASSERT_EQ(b->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(b->id, id);
     ASSERT_EQ(*strNeu, *str);
     ASSERT_EQ(*(strNeu + 1), *(str + 1));
     ASSERT_EQ(*(strNeu + 2), *(str + 2));
@@ -3700,6 +3995,7 @@ TEST(Speicherverwaltung, test_cm_realloc_enlarge) {
     ASSERT_EQ(*(strNeu + 4), *(str + 4));
     ASSERT_EQ(*(strNeu + 5), *(str + 5));
     ASSERT_EQ(*(strNeu + 6), *(str + 6));
+    ASSERT_EQ(((memblock* ) strNeu - 1)->id, id);
 }
 
 /*
@@ -3711,7 +4007,6 @@ TEST(Speicherverwaltung, test_cm_realloc_enlarge) {
 TEST(Speicherverwaltung, test_cm_realloc_shrink) {
     PRINT_INFO("cm_realloc: Verkleinert sich der Speicher?\n");
 
-    init_heap(); // wichtig, damit malloc() nicht den speziell praeparierten mempool zuruecksetzt!
     TESTSTART
 
     memblock *a, *b, *c;
@@ -3721,10 +4016,13 @@ TEST(Speicherverwaltung, test_cm_realloc_shrink) {
     a = (memblock*) mempool;
     a->size = 100 - sizeof(memblock);
     a->next = (memblock*) MAGIC_INT;
+    a->id = 8;
 
     b = (memblock*) (mempool + 100);
     b->size = 1000;
     b->next = NULL;
+    b->id = 5;
+
     freemem = b;
     c = b;
 
@@ -3752,17 +4050,19 @@ TEST(Speicherverwaltung, test_cm_realloc_shrink) {
     *(strNeu + 8) = 'i';
 
     neu = cm_realloc(nutzbereich, 7);
+    ++id;
     strNeu = (char*) neu;
 
     ASSERT_EQ(freemem, a);
     ASSERT_EQ(a->size, 100 - sizeof(memblock));
-    ASSERT_EQ(a->next,
-            (memblock* ) ((char* ) (c) + 7 + sizeof(memblock)));
+    ASSERT_EQ(a->next, (memblock* ) ((char* ) (c) + 7 + sizeof(memblock)));
+    ASSERT_EQ(a->id, 8);
     ASSERT_EQ(a->next->size, 1000 - 7 - sizeof(memblock));
     ASSERT_EQ(NULL, a->next->next);
     ASSERT_EQ(neu, (void* ) (b + 1));
     ASSERT_EQ(b->size, 7);
     ASSERT_EQ(b->next, (memblock*) MAGIC_INT);
+    ASSERT_EQ(b->id, id);
     ASSERT_EQ(*strNeu, *str);
     ASSERT_EQ(*(strNeu + 1), *(str + 1));
     ASSERT_EQ(*(strNeu + 2), *(str + 2));
@@ -3773,8 +4073,8 @@ TEST(Speicherverwaltung, test_cm_realloc_shrink) {
     ASSERT_EQ((void* ) (strNeu + 7), (void* ) a->next);
     ASSERT_EQ('C', *(str + 7));
     ASSERT_EQ('D', *(str + 8));
+    ASSERT_EQ(((memblock* ) strNeu - 1)->id, id);
 }
-
 #endif // MALLOCSPLIT
 
 int main(int argc, char *argv[]) {
