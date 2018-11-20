@@ -74,6 +74,35 @@ speicherverwaltung.o: $(SPEICHER_C) $(SPEICHER_H)
 	gcc $(CFLAGS) $(INCLUDE) $(SPEICHER_C)
 
 
+
+## Programme ausführen
+run-speicher: all
+	./speicher
+
+run-pruef: all
+	./pruef
+
+run-studi: all
+	./studi
+
+run-demo: all
+	./demo
+
+## Programme testen
+test-speicher: all
+	make -C tests/speicherverwaltung
+
+test-pruef: all
+	make -C tests/pruefungen
+
+test-studi: all
+	make -C tests/studiverwaltung
+
+test-demo: all
+	make -C tests/ledanzeige
+
+test: test-speicher test-pruef test-demo test-studi
+
 ##clean up
 .PHONY: clean
 clean:
@@ -87,3 +116,11 @@ clean:
 	rm TM1637.o
 	rm speicherverwaltung.o
 	rm speicher
+
+##Documentation
+
+doc:
+	doxygen doxygen.config
+
+doc-remove: 
+	rm -r ./html ./latex
