@@ -13,7 +13,7 @@ typedef struct memblock{
 } memblock;
 
 memblock *freemem;
-unsigned char mempool[];
+unsigned char mempool[MEM_POOL_SIZE];
 
 int cm_init(void);
 void *cm_malloc(size_t size);
