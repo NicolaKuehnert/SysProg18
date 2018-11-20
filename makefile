@@ -1,4 +1,4 @@
-CFLAGS = -c -Wall -pedantic
+CFLAGS = -c -Wall -pedantic -g
 OFLAGS = -lwiringPi -pthread -lcrypt -lm -lrt
 INCLUDE = -I./include -I./src
 
@@ -27,6 +27,7 @@ PRUEF_H = $(INC_PRUEF)pruefungen.h
 
 SPEICHER_C = $(SRC_SPEICHER)speicherverwaltung.c
 SPEICHER_H = $(INC_SPEICHER)speicherverwaltung.h
+MAIN_C = $(SRC_SPEICHER)main.c
 
 O_FILES = demo.o segmentanzeige.o
 
@@ -67,11 +68,14 @@ TM1637.o: $(TM_C) $(TM_H) $(TM_INT_H)
 
 ##speicher
 
-speicher: speicherverwaltung.o
-	gcc -o speicher speicherverwaltung.o
+speicher: speicherverwaltung.o main.o
+	gcc -o speicher speicherverwaltung.o main.o
 
 speicherverwaltung.o: $(SPEICHER_C) $(SPEICHER_H)
 	gcc $(CFLAGS) $(INCLUDE) $(SPEICHER_C) -DMALLOCSPLIT
+
+main.o: $(MAIN_C) $(SPEICHER_H)
+	gcc $(CFLAGS) $(INCLUDE) $(MAIN_C)
 
 
 ##clean up

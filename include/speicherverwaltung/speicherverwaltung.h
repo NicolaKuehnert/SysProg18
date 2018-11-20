@@ -13,10 +13,14 @@ typedef struct memblock{
 } memblock;
 
 memblock *freemem;
-unsigned char mempool[];
+char mempool[MEM_POOL_SIZE];
 
-int cm_init(void);
+int init_heap(void);
 void *cm_malloc(size_t size);
 void cm_free(void* ptr);
+void cm_defrag(void);
+void cm_defrag20(void);
+void *cm_memcpy(void *dest, const void *src, size_t n);
+void *cm_realloc(void *ptr, size_t size);
 
 #endif /* SPEICHERVERWALTUNG_H */

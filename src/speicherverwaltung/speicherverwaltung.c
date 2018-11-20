@@ -1,16 +1,17 @@
 #include "speicherverwaltung/speicherverwaltung.h"
+#include <stdio.h>
 
-unsigned char mempool[MEM_POOL_SIZE];
+char mempool[MEM_POOL_SIZE];
 memblock *freemem=NULL;
 
-int cm_init(){
+int init_heap(){
 	if(freemem){
 		return 0; /* freemem zeigt schon auf einen Wert in dem Mempool, also schon initialisiert */
 	} 
 	else if(freemem == NULL) {
 		freemem = (memblock*) mempool;
-		freemem->size = sizeof(mempool)-sizeof(memblock);  /*Nutzbarer Speicherberreich*/
-		freemem->next = (memblock*)MAGIC_INT;
+		freemem->size = sizeof(mempool);  /*Nutzbarer Speicherberreich*/
+		freemem->next = NULL;
 		freemem->id = 0;
 		return 1; /* freemem wurde initialisiert */
 	}
@@ -21,53 +22,48 @@ int cm_init(){
 
 void *cm_malloc(size_t size){
 	
-	cm_init();
-	
+	init_heap();
 	if(size == 0)
     	{
         	return NULL;
     	}
-    
+	
     	else
     	{	
 		memblock *weiter=freemem;
-    		memblock *New_FreeBlock = NULL;
+    		memblock *New_FreeBlock;
 		int blockSize = 0;
 
-		while(weiter->next!=NULL){						/*Durchlaufe die Freispeicherliste bis zum Ende*/
+		while(weiter->next!=(memblock*)MAGIC_INT){						/*Durchlaufe die Freispeicherliste bis zum Ende*/
+			printf("%d\n",weiter->size);
+			printf("Sizeof Memblock: %d\n", sizeof(memblock));
+
 			if((weiter->size) >= size){  						/*Reicht der Block aus, wird freemem verschoben. -> first-fit */
 
-				New_FreeBlock = weiter->next;
+				New_FreeBlock = weiter;						/*Neuer Block hat den Anfang des ersten freien Blocks*/
+				printf("New_FreeBlock: %p\n",&New_FreeBlock);
 
 				#ifdef MALLOCSPLIT
 				blockSize = weiter->size;
 
 				if((weiter->size) > size + (2 * sizeof(memblock)) +32){
-					weiter->size = size;
-					New_FreeBlock->size = blockSize - size;
-					New_FreeBlock->id = 0;
+					printf("Splitting\n");
+					New_FreeBlock->size = size;
+					New_FreeBlock->id += 1;
+					New_FreeBlock->next=(memblock*)MAGIC_INT;
 				}
 				#endif
 
-				freemem=New_FreeBlock;
-				weiter->id = 1;
-				weiter->next=(memblock*)MAGIC_INT;			/*Belegten Speicherplatz verweist auf den Vorgegebenen Wert 0xacdcacdc*/
-				return weiter;
+				/*
+				*Hier müsste jetzt freemem noch auf den nächsten freien Bereich verschoben werden
+				*/
+				printf("New_FreeBlock: %x\n",New_FreeBlock);
+				return New_FreeBlock;
 			}
 			else {
 				weiter = weiter->next;
 			}
 
-			/* Brauchen wir das hier dann noch?
-
-			if((weiter->next->size)>=size){	
-				memblock* ret=weiter->next;
-				ret->id=1;
-				weiter->next=weiter->next->next;
-				ret=ret+sizeof(memblock);
-				ret->next=(memblock*)MAGIC_INT;
-				return ret;
-			} */
 		}
 			
 		return NULL;
@@ -103,5 +99,21 @@ void cm_free(void *ptr){
 	
 }
 
+void cm_defrag(void){
 
-int main() {return 0;}
+}
+
+void cm_defrag20(void){
+
+}
+
+void *cm_memcpy(void *dest, const void *src, size_t n){
+	return 0;
+
+}
+
+void *cm_realloc(void *ptr, size_t size){
+	return 0;
+}
+
+
