@@ -18,11 +18,11 @@ int main(){
 	printf("\nCall malloc 4\n");
 	ptr2=(memblock *)cm_malloc(20);
 
-	printf("Call memcpy\n");
+	printf("\nCall memcpy\n");
 	cm_memcpy(ptr, ptr2, 20);
 	printf("%p\n\n",ptr2);
 	
-	printf("Call free\n");
+	printf("\nCall free\n");
 	cm_free(ptr);
 	cm_free(ptr2);
 	

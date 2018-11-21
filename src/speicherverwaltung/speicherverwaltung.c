@@ -10,7 +10,7 @@ int init_heap(){
 	} 
 	else if(freemem == NULL) {
 		freemem = (memblock*) mempool;
-		freemem->size = sizeof(mempool);  /*Nutzbarer Speicherberreich*/
+		freemem->size = sizeof(mempool) - sizeof(memblock);  /*Nutzbarer Speicherberreich*/
 		freemem->next = NULL;
 		freemem->id = 0;
 		return 1; /* freemem wurde initialisiert */
@@ -23,7 +23,7 @@ int init_heap(){
 void *cm_malloc(size_t size){
 	
 	init_heap();
-	if(size == 0)
+	if(size == 0 || size > MEM_POOL_SIZE || freemem->size == 0)
     	{
         	return NULL;
     	}
@@ -53,7 +53,7 @@ void *cm_malloc(size_t size){
 				#endif
 				printf("New_FreeBlock: %x\n",New_FreeBlock);
 
-				freemem = (memblock *)(((char * )freemem + 1) + size);
+				freemem = (memblock *)((char * )freemem + size);
 				freemem->size = blockSize - size;
 				printf("freemem: %x\n", freemem);
 
@@ -75,27 +75,29 @@ void cm_free(void *ptr){
 	
 	memblock* help_ptr = (memblock*) ptr;
 	
-	if(ptr != NULL && help_ptr->next == (memblock*)MAGIC_INT)/*wenn ptr = NULL || ptr nicht durch malloc angelegt*/
+	if(ptr != NULL && help_ptr->next == (memblock*)MAGIC_INT)			/*wenn ptr = NULL || ptr nicht durch malloc angelegt*/
     	{
-        	if(freemem != NULL)     /*Freispeicherliste existiert*/
+        	if(freemem != NULL)     						/*Freispeicherliste existiert*/
         	{
             		if(freemem->next != (memblock*)MAGIC_INT)
             		{
-                		help_ptr->next = freemem; /*freien Block markieren -> Liste existent*/
+                		help_ptr->next = freemem; 				/*freien Block markieren -> Liste existent*/
             		}
             		else
-                		return; /*Fehler in der Verlinkung*/
-        		}
-        	else /*freemem -Zeiger zeigt nicht auf den physikalisch ersten Block*/
+			{
+                		return; 						/*Fehler in der Verlinkung*/
+			}
+        	}
+        	else 									/*freemem -Zeiger zeigt nicht auf den physikalisch ersten Block*/
         	{
-            		help_ptr->next = NULL; /*freien Block markieren -> Liste nicht existent*/
+            		help_ptr->next = NULL; 						/*freien Block markieren -> Liste nicht existent*/
         	}
 
-        	freemem = help_ptr;/*Block vorn in Liste einhängen*/
-    	}	
+        	freemem = help_ptr;							/*Block vorn in Liste einhängen*/
+    	}
 
    	return;
-	
+
 }
 
 void cm_defrag(void){
