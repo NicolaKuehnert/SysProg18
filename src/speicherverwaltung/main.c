@@ -12,19 +12,20 @@ int main(){
 	printf("\nCall malloc 2\n");
 	ptr2=(memblock *)cm_malloc(100);
 
-	printf("\nCall free\n");
-	cm_free(ptr);
-	cm_free(ptr2);
-
 	printf("\nCall malloc 3\n");
 	ptr=(memblock *)cm_malloc(500);
 
 	printf("\nCall malloc 4\n");
 	ptr2=(memblock *)cm_malloc(20);
 
-	printf("\nCall free\n");
+	printf("Call memcpy\n");
+	cm_memcpy(ptr, ptr2, 20);
+	printf("%p\n\n",ptr2);
+	
+	printf("Call free\n");
 	cm_free(ptr);
 	cm_free(ptr2);
+	
 	
 	return 0;
 }

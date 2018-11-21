@@ -106,8 +106,25 @@ void cm_defrag20(void){
 
 }
 
+//will noch nicht ganz, die pointer geben nil aus. sollte aber funktionieren
+
 void *cm_memcpy(void *dest, const void *src, size_t n){
-	return 0;
+	printf("%p\n\n",toMemblockPtr(src));
+	printf("%p\n\n",src);
+	if (dest && src && inRange(dest) && inRange(src)) {
+		printf("test");
+        if (((toMemblockPtr(src) - 1)->next) == toMemblockPtr(MAGIC_INT) && ((toMemblockPtr(dest) - 1)->next) == toMemblockPtr(MAGIC_INT)) {
+			printf("test2");
+            char *destnew = ((char *) dest);
+            char *srcnew = ((char *) src);
+            for (int i = 0; (size_t) i < n; i++, destnew++, srcnew++) {
+                *destnew = *srcnew;
+            }
+        }
+        //erster Problemfall: dest nicht gross genug
+        //zweiter Problemfall: src enthaelt nicht n elemente
+        //dritter Problemfall: wenn n negativ ist
+    }
 
 }
 
