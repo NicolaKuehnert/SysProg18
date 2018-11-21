@@ -72,30 +72,22 @@ void *cm_malloc(size_t size){
 }
 
 void cm_free(void *ptr){
-	
+	printf("freemem: %x\n", freemem);
+	printf("freemem->size: %d\n", freemem->size);
 	memblock* help_ptr = (memblock*) ptr;
+
+	int freeSize = freemem->size;
 	
-	if(ptr != NULL && help_ptr->next == (memblock*)MAGIC_INT)			/*wenn ptr = NULL || ptr nicht durch malloc angelegt*/
-    	{
-        	if(freemem != NULL)     						/*Freispeicherliste existiert*/
-        	{
-            		if(freemem->next != (memblock*)MAGIC_INT)
-            		{
-                		help_ptr->next = freemem; 				/*freien Block markieren -> Liste existent*/
-            		}
-            		else
-			{
-                		return; 						/*Fehler in der Verlinkung*/
-			}
-        	}
-        	else 									/*freemem -Zeiger zeigt nicht auf den physikalisch ersten Block*/
-        	{
-            		help_ptr->next = NULL; 						/*freien Block markieren -> Liste nicht existent*/
-        	}
+	if(ptr != NULL && help_ptr->next == (memblock*)MAGIC_INT)/*wenn ptr = NULL || ptr nicht durch malloc angelegt*/
+    {
+		if(inRange(help_ptr)){
+        	help_ptr->next = freemem;
+        	freemem = help_ptr;
+		freemem->size += freeSize;
 
-        	freemem = help_ptr;							/*Block vorn in Liste einhängen*/
-    	}
-
+		}
+    }	
+	printf("freemem: %x\n", freemem);
    	return;
 
 }

@@ -9,7 +9,9 @@ int main(){
 	printf("\nCall malloc\n");
 	ptr=(memblock *)cm_malloc(30);
 
-	printf("\nCall malloc 2\n");
+	ptr2=(memblock *)cm_malloc(30);
+
+	/*printf("\nCall malloc 2\n");
 	ptr2=(memblock *)cm_malloc(100);
 
 	printf("\nCall malloc 3\n");
@@ -18,13 +20,17 @@ int main(){
 	printf("\nCall malloc 4\n");
 	ptr2=(memblock *)cm_malloc(20);
 
-	printf("\nCall memcpy\n");
+	/*printf("Call memcpy\n");
 	cm_memcpy(ptr, ptr2, 20);
-	printf("%p\n\n",ptr2);
+	printf("%p\n\n",ptr2);*/
 	
 	printf("\nCall free\n");
 	cm_free(ptr);
 	cm_free(ptr2);
+	printf("\nCall malloc\n");
+	ptr=(memblock *)cm_malloc(30);
+
+	ptr=(memblock *)cm_malloc(40);
 	
 	
 	return 0;
