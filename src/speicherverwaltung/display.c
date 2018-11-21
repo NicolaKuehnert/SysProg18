@@ -13,7 +13,7 @@ void display_heap(void) {
     while (inRange(block) && block->next != 0 && block->size != 0) {
         if (block->next == toMemblockPtr(MAGIC_INT)) {
             countFilled++;
-            memAllocated += sizeof(memblock) + block->size;
+            memAllocated += block->size;
         } else {
             countFree++;
         }

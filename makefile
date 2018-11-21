@@ -12,6 +12,9 @@ SRC_PRUEF = src/pruefungen/
 SRC_SPEICHER = src/speicherverwaltung/
 INC_SPEICHER = include/speicherverwaltung/
 
+LED_BIB = all_libledanzeige.so
+LIB_FLAG = -L. -l$(LED_LIB)
+
 DEMO = $(SRC_LED)demo.c
 SEG_H = $(INC_LED)segmentanzeige.h
 SEG_C = $(SRC_LED)segmentanzeige.c
@@ -35,12 +38,12 @@ O_FILES = demo.o segmentanzeige.o
 
 
 ##default target
-all: demo studi pruef speicher
+all: all_libledanzeige.so install_libledanzeige demo studi pruef speicher
 
 ##ledanzeige
 
-demo: $(O_FILES)
-	gcc -o demo $(O_FILES) $(OFLAGS)
+demo: $(O_FILES) lib/$(LED_BIB)
+	gcc -o demo $(O_FILES) $(OFLAGS) 
 
 demo.o: $(DEMO) $(SEG_H)
 	gcc $(CFLAGS) $(INCLUDE) $(DEMO)
@@ -58,8 +61,8 @@ studiverwaltung.o: $(STUDI_C) $(STUDI_H)
 
 ##prüfung
 
-pruef: pruefungen.o TM1637.o segmentanzeige.o
-	gcc -o pruef pruefungen.o TM1637.o segmentanzeige.o $(OFLAGS)
+pruef: pruefungen.o $(LED_BIB)
+	gcc -o pruef pruefungen.o TM1637.o segmentanzeige.o $(OFLAGS) 
 
 pruefungen.o: $(PRUEF_C) $(PRUEF_H) $(SEG_H)
 	gcc $(CFLAGS) $(INCLUDE) $(PRUEF_C)
@@ -82,6 +85,18 @@ main.o: $(MAIN_C) $(SPEICHER_H) $(DISPLAY_H)
 display.o: $(DISPLAY_C) $(SPEICHER_H) $(DISPLAY_H)
 	gcc $(CFLAGS) $(INCLUDE) $(DISPLAY_C)
 
+##Bibliothek aus LED-Anzeige
+
+all_libledanzeige.so: $(SRC_LED)segmentanzeige.c $(SRC_LED)TM1637.c
+	gcc -c -fpic $(SRC_LED)segmentanzeige.c $(INCLUDE)
+	gcc -c -fpic $(SRC_LED)TM1637.c $(INCLUDE)
+	gcc -shared -o all_libledanzeige.so segmentanzeige.o TM1637.o
+	
+install_libledanzeige: all_libledanzeige.so
+	mkdir -p lib/
+	cp all_libledanzeige.so lib/
+
+
 
 ##clean up
 .PHONY: clean
@@ -96,3 +111,7 @@ clean:
 	rm TM1637.o
 	rm speicherverwaltung.o
 	rm speicher
+	rm lib/all_libledanzeige.so
+	rmdir lib/
+	rm all_libledanzeige.so
+	rm main.o
