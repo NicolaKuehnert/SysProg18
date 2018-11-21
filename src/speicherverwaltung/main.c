@@ -30,7 +30,12 @@ int main(){
 	printf("\nCall malloc\n");
 	ptr=(memblock *)cm_malloc(30);
 
-	ptr=(memblock *)cm_malloc(40);
+	ptr2=(memblock *)cm_malloc(40);
+
+	printf("\nCall realloc\n");
+	ptr2=(memblock *)cm_realloc(ptr2, 20);
+	ptr2=(memblock *)cm_realloc(ptr2, 50);
+	ptr2=(memblock *)cm_realloc(ptr2, 0);
 	
 	
 	return 0;
