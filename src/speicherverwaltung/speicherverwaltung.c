@@ -51,11 +51,11 @@ void *cm_malloc(size_t size){
 					New_FreeBlock->next=(memblock*)MAGIC_INT;
 				}
 				#endif
-				printf("New_FreeBlock: %x\n",New_FreeBlock);
+				printf("New_FreeBlock: %i\n",New_FreeBlock);
 
-				freemem = (memblock *)(((char * )freemem + 1) + size);
+				freemem = (memblock *)(((char * )(freemem + 1)) + size);
 				freemem->size = blockSize - size;
-				printf("freemem: %x\n", freemem);
+				printf("freemem: %i\n", freemem);
 
 				return New_FreeBlock;
 			}
