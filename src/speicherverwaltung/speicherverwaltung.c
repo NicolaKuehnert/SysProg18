@@ -36,12 +36,10 @@ void *cm_malloc(size_t size){
 
 		while(weiter->next!=(memblock*)MAGIC_INT){						/*Durchlaufe die Freispeicherliste bis zum Ende*/
 			printf("%d\n",weiter->size);
-			printf("Sizeof Memblock: %d\n", sizeof(memblock));
 
 			if((weiter->size) >= size){  						/*Reicht der Block aus, wird freemem verschoben. -> first-fit */
 
 				New_FreeBlock = weiter;						/*Neuer Block hat den Anfang des ersten freien Blocks*/
-				printf("New_FreeBlock: %p\n",&New_FreeBlock);
 
 				#ifdef MALLOCSPLIT
 				blockSize = weiter->size;
@@ -53,11 +51,12 @@ void *cm_malloc(size_t size){
 					New_FreeBlock->next=(memblock*)MAGIC_INT;
 				}
 				#endif
-
-				/*
-				*Hier müsste jetzt freemem noch auf den nächsten freien Bereich verschoben werden
-				*/
 				printf("New_FreeBlock: %x\n",New_FreeBlock);
+
+				freemem = (memblock *)(((char * )freemem + 1) + size);
+				freemem->size = blockSize - size;
+				printf("freemem: %x\n", freemem);
+
 				return New_FreeBlock;
 			}
 			else {
