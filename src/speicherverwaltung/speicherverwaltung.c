@@ -10,7 +10,7 @@ int init_heap(){
 	} 
 	else if(freemem == NULL) {
 		freemem = (memblock*) mempool;
-		freemem->size = sizeof(mempool);  /*Nutzbarer Speicherberreich*/
+		freemem->size = sizeof(mempool) - sizeof(memblock);  /*Nutzbarer Speicherberreich*/
 		freemem->next = NULL;
 		freemem->id = 0;
 		return 1; /* freemem wurde initialisiert */
@@ -23,8 +23,9 @@ int init_heap(){
 void *cm_malloc(size_t size){
 	
 	init_heap();
-	if(size == 0)
+	if(size == 0 || size > MEM_POOL_SIZE || freemem->size == 0)
     	{
+		printf("skipped malloc");
         	return NULL;
     	}
 	
@@ -73,18 +74,23 @@ void *cm_malloc(size_t size){
 
 void cm_free(void *ptr){
 	printf("freemem: %x\n", freemem);
+	printf("freemem->size: %d\n", freemem->size);
 	memblock* help_ptr = (memblock*) ptr;
+
+	int freeSize = freemem->size;
 	
 	if(ptr != NULL && help_ptr->next == (memblock*)MAGIC_INT)/*wenn ptr = NULL || ptr nicht durch malloc angelegt*/
     {
 		if(inRange(help_ptr)){
         	help_ptr->next = freemem;
         	freemem = help_ptr;
+		freemem->size += freeSize;
+
 		}
     }	
-	printf("freemem: %x\n", freemem);
+	printf("freemem: %x\n", freemem);	
    	return;
-	
+
 }
 
 void cm_defrag(void){
@@ -102,23 +108,40 @@ void *cm_memcpy(void *dest, const void *src, size_t n){
 	printf("%p\n\n",src);
 	if (dest && src && inRange(dest) && inRange(src)) {
 		printf("test");
-        if (((toMemblockPtr(src) - 1)->next) == toMemblockPtr(MAGIC_INT) && ((toMemblockPtr(dest) - 1)->next) == toMemblockPtr(MAGIC_INT)) {
+        	if (((toMemblockPtr(src) - 1)->next) == toMemblockPtr(MAGIC_INT) && ((toMemblockPtr(dest) - 1)->next) == toMemblockPtr(MAGIC_INT)) {
 			printf("test2");
-            char *destnew = ((char *) dest);
-            char *srcnew = ((char *) src);
-            for (int i = 0; (size_t) i < n; i++, destnew++, srcnew++) {
-                *destnew = *srcnew;
-            }
-        }
+            		char *destnew = ((char *) dest);
+            		char *srcnew = ((char *) src);
+            		for (int i = 0; (size_t) i < n; i++, destnew++, srcnew++) {
+                		*destnew = *srcnew;
+            		}
+        	}
         //erster Problemfall: dest nicht gross genug
         //zweiter Problemfall: src enthaelt nicht n elemente
         //dritter Problemfall: wenn n negativ ist
-    }
+    	}
 
 }
 
 void *cm_realloc(void *ptr, size_t size){
-	return 0;
+	
+	memblock *ptr2 = ptr;
+	memblock *ret;
+	if(ptr2->next != (memblock *)MAGIC_INT || size == ptr2->size){
+		return ptr;
+	}
+	else if(ptr == NULL){
+		ret = (memblock *)cm_malloc(size);
+	}
+	else if(ptr != NULL && size == 0){
+		cm_free(ptr);
+		return ptr;
+	}
+	else {
+		ret = (memblock *)cm_malloc(size);
+		ret = (memblock *)cm_memcpy(ret, ptr, size);
+		cm_free(ptr);
+	}
+	return ret;
 }
-
 

@@ -6,7 +6,7 @@ extern "C" {
 #define WAIT 1000
 
 /** Prototypen */
-
+#include "ledanzeige/segmentanzeige.h"
 void display_heap(void);
 
 #ifdef __cplusplus

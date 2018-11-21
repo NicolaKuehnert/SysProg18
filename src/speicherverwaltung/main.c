@@ -12,11 +12,11 @@ int main(){
 	printf("\nCall malloc\n");
 	ptr=(memblock *)cm_malloc(30);
 	printf("\nCall malloc\n");
-	cm_free(ptr);
 	ptr2=(memblock *)cm_malloc(40);
 	printf("\nCall malloc\n");
-
+	
 	ptr3=(memblock *)cm_malloc(50);
+	cm_free(ptr3);
 	/*printf("\nCall malloc 2\n");
 	ptr2=(memblock *)cm_malloc(100);
 
