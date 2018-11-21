@@ -30,8 +30,7 @@ PRUEF_H = $(INC_PRUEF)pruefungen.h
 
 SPEICHER_C = $(SRC_SPEICHER)speicherverwaltung.c
 SPEICHER_H = $(INC_SPEICHER)speicherverwaltung.h
-DISPLAY_C = $(SRC_SPEICHER)display.c
-DISPLAY_H = $(INC_SPEICHER)display.h
+
 MAIN_C = $(SRC_SPEICHER)main.c
 
 O_FILES = demo.o segmentanzeige.o
@@ -73,17 +72,15 @@ TM1637.o: $(TM_C) $(TM_H) $(TM_INT_H)
 
 ##speicher
 
-speicher: speicherverwaltung.o main.o display.o
-	gcc -o speicher speicherverwaltung.o display.o main.o
+speicher: speicherverwaltung.o main.o
+	gcc -o speicher speicherverwaltung.o main.o
 
 speicherverwaltung.o: $(SPEICHER_C) $(SPEICHER_H)
 	gcc $(CFLAGS) $(INCLUDE) $(SPEICHER_C) -DMALLOCSPLIT
 
-main.o: $(MAIN_C) $(SPEICHER_H) $(DISPLAY_H)
+main.o: $(MAIN_C) $(SPEICHER_H)
 	gcc $(CFLAGS) $(INCLUDE) $(MAIN_C)
 
-display.o: $(DISPLAY_C) $(SPEICHER_H) $(DISPLAY_H)
-	gcc $(CFLAGS) $(INCLUDE) $(DISPLAY_C)
 
 ##Bibliothek aus LED-Anzeige
 

@@ -1,5 +1,7 @@
 #include "speicherverwaltung/speicherverwaltung.h"
 #include <stdio.h>
+#include "ledanzeige/segmentanzeige.h"
+#include "ledanzeige/TM1637.h"
 
 char mempool[MEM_POOL_SIZE];
 memblock *freemem=NULL;
@@ -52,12 +54,8 @@ void *cm_malloc(size_t size){
 					New_FreeBlock->next=(memblock*)MAGIC_INT;
 				}
 				#endif
-				printf("New_FreeBlock: %i\n",New_FreeBlock);
-
 				freemem = (memblock *)(((char * )(freemem + 1)) + size);
 				freemem->size = blockSize - size;
-				printf("freemem: %i\n", freemem);
-
 				return New_FreeBlock;
 			}
 			else {
@@ -73,7 +71,6 @@ void *cm_malloc(size_t size){
 }
 
 void cm_free(void *ptr){
-	printf("freemem: %x\n", freemem);
 	printf("freemem->size: %d\n", freemem->size);
 	memblock* help_ptr = (memblock*) ptr;
 
@@ -88,7 +85,6 @@ void cm_free(void *ptr){
 
 		}
     }	
-	printf("freemem: %x\n", freemem);	
    	return;
 
 }
@@ -104,7 +100,6 @@ void cm_defrag20(void){
 //will noch nicht ganz, die pointer geben nil aus. sollte aber funktionieren
 
 void *cm_memcpy(void *dest, const void *src, size_t n){
-	printf("%p\n\n",toMemblockPtr(src));
 	printf("%p\n\n",src);
 	if (dest && src && inRange(dest) && inRange(src)) {
 		printf("test");
@@ -120,7 +115,7 @@ void *cm_memcpy(void *dest, const void *src, size_t n){
         //zweiter Problemfall: src enthaelt nicht n elemente
         //dritter Problemfall: wenn n negativ ist
     	}
-
+	return NULL; //kompiler verlangt Rückgabe
 }
 
 void *cm_realloc(void *ptr, size_t size){
@@ -145,3 +140,9 @@ void *cm_realloc(void *ptr, size_t size){
 	return ret;
 }
 
+
+void display_heap(){
+	/*TM1637_setup();
+	TM1637_display_number(5);*/
+	printf("display_heap");
+	}

@@ -25,5 +25,6 @@ void cm_defrag(void);
 void cm_defrag20(void);
 void *cm_memcpy(void *dest, const void *src, size_t n);
 void *cm_realloc(void *ptr, size_t size);
+void display_heap(void);
 
 #endif /* SPEICHERVERWALTUNG_H */
