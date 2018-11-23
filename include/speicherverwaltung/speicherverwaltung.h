@@ -16,7 +16,7 @@ typedef struct memblock{
 } memblock;
 
 memblock *freemem;
-char mempool[MEM_POOL_SIZE]
+char mempool[MEM_POOL_SIZE];
 
 int init_heap(void);
 void *cm_malloc(size_t size);

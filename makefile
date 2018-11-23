@@ -127,20 +127,8 @@ test: test-speicher test-pruef test-demo test-studi
 ##clean up
 .PHONY: clean
 clean:
-	rm demo.o
-	rm segmentanzeige.o
-	rm demo
-	rm pruefungen.o
-	rm pruef
-	rm studiverwaltung.o
-	rm studi
-	rm TM1637.o
-	rm speicherverwaltung.o
-	rm speicher
-	rm lib/all_libledanzeige.so
-	rmdir lib/
-	rm all_libledanzeige.so
-	rm main.o
+	rm demo.o main.o segmentanzeige.o demo pruefungen.o pruef studiverwaltung.o studi TM1637.o speicherverwaltung.o speicher all_libledanzeige.so 
+	rm -rf lib/
 
 ##Documentation
 

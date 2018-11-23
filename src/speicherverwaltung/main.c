@@ -30,7 +30,7 @@ int main(){
 	
 	
 	printf("\ndisplay\n");
-	display_heap();
+	//display_heap();
 	
 	
 	return 0;
