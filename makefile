@@ -1,4 +1,4 @@
-CFLAGS = -c -Wall -pedantic
+CFLAGS = -c -Wall -pedantic -g
 OFLAGS = -lwiringPi -pthread -lcrypt -lm -lrt
 INCLUDE = -I./include -I./src
 
@@ -11,6 +11,9 @@ INC_PRUEF = include/pruefungen/
 SRC_PRUEF = src/pruefungen/
 SRC_SPEICHER = src/speicherverwaltung/
 INC_SPEICHER = include/speicherverwaltung/
+
+LED_BIB = all_libledanzeige.so
+LIB_FLAG = -L. -l$(LED_LIB)
 
 DEMO = $(SRC_LED)demo.c
 SEG_H = $(INC_LED)segmentanzeige.h
@@ -28,16 +31,18 @@ PRUEF_H = $(INC_PRUEF)pruefungen.h
 SPEICHER_C = $(SRC_SPEICHER)speicherverwaltung.c
 SPEICHER_H = $(INC_SPEICHER)speicherverwaltung.h
 
+MAIN_C = $(SRC_SPEICHER)main.c
+
 O_FILES = demo.o segmentanzeige.o
 
 
 ##default target
-all: demo studi pruef speicher
+all: all_libledanzeige.so install_libledanzeige demo studi pruef speicher
 
 ##ledanzeige
 
-demo: $(O_FILES)
-	gcc -o demo $(O_FILES) $(OFLAGS)
+demo: $(O_FILES) lib/$(LED_BIB)
+	gcc -o demo $(O_FILES) $(OFLAGS) 
 
 demo.o: $(DEMO) $(SEG_H)
 	gcc $(CFLAGS) $(INCLUDE) $(DEMO)
@@ -55,8 +60,8 @@ studiverwaltung.o: $(STUDI_C) $(STUDI_H)
 
 ##prüfung
 
-pruef: pruefungen.o TM1637.o segmentanzeige.o
-	gcc -o pruef pruefungen.o TM1637.o segmentanzeige.o $(OFLAGS)
+pruef: pruefungen.o $(LED_BIB)
+	gcc -o pruef pruefungen.o TM1637.o segmentanzeige.o $(OFLAGS) 
 
 pruefungen.o: $(PRUEF_C) $(PRUEF_H) $(SEG_H)
 	gcc $(CFLAGS) $(INCLUDE) $(PRUEF_C)
@@ -67,11 +72,27 @@ TM1637.o: $(TM_C) $(TM_H) $(TM_INT_H)
 
 ##speicher
 
-speicher: speicherverwaltung.o
-	gcc -o speicher speicherverwaltung.o
+speicher: speicherverwaltung.o main.o
+	gcc -o speicher speicherverwaltung.o main.o
 
 speicherverwaltung.o: $(SPEICHER_C) $(SPEICHER_H)
-	gcc $(CFLAGS) $(INCLUDE) $(SPEICHER_C)
+	gcc $(CFLAGS) $(INCLUDE) $(SPEICHER_C) -DMALLOCSPLIT
+
+main.o: $(MAIN_C) $(SPEICHER_H)
+	gcc $(CFLAGS) $(INCLUDE) $(MAIN_C)
+
+
+##Bibliothek aus LED-Anzeige
+
+all_libledanzeige.so: $(SRC_LED)segmentanzeige.c $(SRC_LED)TM1637.c
+	gcc -c -fpic $(SRC_LED)segmentanzeige.c $(INCLUDE)
+	gcc -c -fpic $(SRC_LED)TM1637.c $(INCLUDE)
+	gcc -shared -o all_libledanzeige.so segmentanzeige.o TM1637.o
+	
+install_libledanzeige: all_libledanzeige.so
+	mkdir -p lib/
+	cp all_libledanzeige.so lib/
+
 
 
 
@@ -116,6 +137,10 @@ clean:
 	rm TM1637.o
 	rm speicherverwaltung.o
 	rm speicher
+	rm lib/all_libledanzeige.so
+	rmdir lib/
+	rm all_libledanzeige.so
+	rm main.o
 
 ##Documentation
 
