@@ -26,7 +26,8 @@ ringbuffer.o: $(RINGBUFFER_C)
 display.o: $(DISPLAY_C) 
 	gcc $(CFLAGS) $(INCLUDE) $(DISPLAY_C)
 	
-run: clean all
+run: all
+	clear
 	./$(PROJECT)
 
 test: all

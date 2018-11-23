@@ -4,6 +4,6 @@
 #include <stdio.h>
 #include "ringbuffer/display.h"
 
-void display(void) {
+void display_status(void) {
     
 }
