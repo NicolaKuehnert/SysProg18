@@ -140,9 +140,3 @@ void *cm_realloc(void *ptr, size_t size){
 	return ret;
 }
 
-
-void display_heap(){
-	/*TM1637_setup();
-	TM1637_display_number(5);*/
-	printf("display_heap");
-	}

@@ -95,6 +95,35 @@ install_libledanzeige: all_libledanzeige.so
 
 
 
+
+## Programme ausführen
+run-speicher: all
+	./speicher
+
+run-pruef: all
+	./pruef
+
+run-studi: all
+	./studi
+
+run-demo: all
+	./demo
+
+## Programme testen
+test-speicher: all
+	make -C tests/speicherverwaltung
+
+test-pruef: all
+	make -C tests/pruefungen
+
+test-studi: all
+	make -C tests/studiverwaltung
+
+test-demo: all
+	make -C tests/ledanzeige
+
+test: test-speicher test-pruef test-demo test-studi
+
 ##clean up
 .PHONY: clean
 clean:
@@ -112,3 +141,11 @@ clean:
 	rmdir lib/
 	rm all_libledanzeige.so
 	rm main.o
+
+##Documentation
+
+doc:
+	doxygen doxygen.config
+
+doc-remove: 
+	rm -r ./html ./latex
