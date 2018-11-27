@@ -16,8 +16,6 @@ int main(void) {
 	printf("Groesse: %i\n", test->size);
 	printf("Anfang: %i\n", test->head);
 	
-	char* data2 = (char*)malloc(sizeof("hallo"));
-	data2 = "halla";
 	char * p1 = & data;
 	char * p2 = & data2;
 	char * p3 = & data3;
@@ -36,10 +34,6 @@ int main(void) {
 	printf("Belegt: %i\n", test->count);
 	printf("Groesse: %i\n", test->size);
 	printf("Anfang: %i\n", test->head);
-	
-	char* data3 = (char*)malloc(sizeof("hallo"));
-	data3 = "halli";
-	
 	
 	void** blub = &data;
 	printf("Test%x", (char*)(*blub));
