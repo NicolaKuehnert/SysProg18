@@ -44,12 +44,8 @@ void *read_buffer(ring_buffer *cb){
 		return NULL;
 	}
 	else{
-<<<<<<< HEAD
 		//printf("Read buffer\nFirst Element: %p\n", (char *)cb->elems[cb->head]);
 		printf("\ncb->head: %i\n", cb->head);
-=======
-		printf("First Element: %p\n", (char*)cb->elems[cb->head]);
->>>>>>> 98899c0c020220ed1c8854a91b25f7d0eb827cad
 		void *ret = cb->elems[cb->head];				//Erstes Element, das noch nicht gelesen wurde
 		cb->head--;							//Setze Head auf das nächste Element
 		cb->count--;							//Verkleinere count, damit der Buffer weiß, wie viele Elemente noch da sind
