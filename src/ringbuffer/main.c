@@ -1,5 +1,6 @@
 #include "ringbuffer/display.h"
 #include "ringbuffer/ringbuffer.h"
+#include <stdio.h>
 
 int main(void) {
 	ring_buffer* test = init_buffer(2, free );
@@ -12,7 +13,7 @@ int main(void) {
 	
 	// ich weiß nicht welches format data haben muss um es abzuspeichern
 	write_buffer(test, &data);
-	
+
 	printf("Belegt: %i\n", test->count);
 	printf("Groesse: %i\n", test->size);
 	printf("Anfang: %i\n", test->head);
@@ -21,6 +22,14 @@ int main(void) {
 	data2 = "halla";
 	
 	write_buffer(test, &data2);
+
+	printf("\ntest->elems 1: %p\ntest->head: %i\n", test->elems[1], test->head);
+	printf("test->elems 2: %p\n", test->elems[2]);
+	char *ret = (char*)read_buffer(test);
+	printf("Readbuffer return value: %p\n", ret);
+	printf("\ntest->head: %i\n", test->head);
+	*ret = (char*)read_buffer(test);
+	printf("Readbuffer return value: %p\n\n", ret);
 	
 	printf("Belegt: %i\n", test->count);
 	printf("Groesse: %i\n", test->size);
@@ -38,6 +47,9 @@ int main(void) {
 	printf("Belegt: %i\n", test->count);
 	printf("Groesse: %i\n", test->size);
 	printf("Anfang: %i\n", test->head);
+
+	
+
 	return 0;
 }
 
