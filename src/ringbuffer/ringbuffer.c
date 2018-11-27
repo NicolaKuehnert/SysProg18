@@ -34,9 +34,9 @@ void write_buffer(ring_buffer *cb, void *data) {
 }
 
 void test(ring_buffer * cb){
-	printf("Size: %i\n", (int)cb->size);
-	printf("count: %i\n", count_elements(cb));
-	printf("Head: %i\n", cb->head);
+	printf("Size: %li\n", (int)cb->size);
+	printf("count: %li\n", count_elements(cb));
+	printf("Head: %li\n\n", cb->head);
 }
 
 void *read_buffer(ring_buffer *cb){
@@ -44,11 +44,13 @@ void *read_buffer(ring_buffer *cb){
 		return NULL;
 	}
 	else{
-		//printf("Read buffer\nFirst Element: %p\n", (char *)cb->elems[cb->head]);
-		printf("\ncb->head: %i\n", cb->head);
 		void *ret = cb->elems[cb->head];				//Erstes Element, das noch nicht gelesen wurde
-		cb->head--;							//Setze Head auf das nächste Element
+		cb->head--;							//Setze Head auf das nächst ältere Element
 		cb->count--;							//Verkleinere count, damit der Buffer weiß, wie viele Elemente noch da sind
+		if(cb->head < 0){
+			cb->head = 0;						//Das Elemente Array kann nicht kleiner als 0 sein.
+		}
+		test(cb);
 		return ret;
 	}
 

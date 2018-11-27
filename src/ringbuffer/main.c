@@ -12,40 +12,42 @@ int main(void) {
 	// ich weiß nicht welches format data haben muss um es abzuspeichern
 	write_buffer(test, &data);
 
-	printf("Belegt: %i\n", test->count);
-	printf("Groesse: %i\n", test->size);
-	printf("Anfang: %i\n", test->head);
+	printf("Belegt: %li\n", test->count);
+	printf("Groesse: %li\n", test->size);
+	printf("Anfang: %li\n", test->head);
 	
-	char * p1 = & data;
-	char * p2 = & data2;
-	char * p3 = & data3;
 	
 	write_buffer(test, &data);
 	write_buffer(test, &data2);
 
-	printf("\ntest->elems 1: %p\ntest->head: %i\n", test->elems[1], test->head);
-	printf("test->elems 2: %p\n", test->elems[2]);
-	char *ret = (char*)read_buffer(test);
-	printf("Readbuffer return value: %p\n", ret);
-	printf("\ntest->head: %i\n", test->head);
-	*ret = (char*)read_buffer(test);
+	void *ret = read_buffer(test);
 	printf("Readbuffer return value: %p\n\n", ret);
-	
-	printf("Belegt: %i\n", test->count);
-	printf("Groesse: %i\n", test->size);
-	printf("Anfang: %i\n", test->head);
+
+	/*printf("Belegt: %li\n", test->count);
+	printf("Groesse: %li\n", test->size);
+	printf("Anfang: %li\n", test->head);*/
 	
 	void** blub = &data;
 	printf("Test%x", (char*)(*blub));
 	
 	write_buffer(test, &data3);
+
+	ret = read_buffer(test);
+	printf("Readbuffer return value: %p\n\n", ret);
+
+	ret = read_buffer(test);
+	printf("Readbuffer return value: %p\n\n", ret);
 	
-	printf("Belegt: %i\n", test->count);
-	printf("Groesse: %i\n", test->size);
-	printf("Anfang: %i\n", test->head);
+	/*printf("Belegt: %li\n", test->count);
+	printf("Groesse: %li\n", test->size);
+	printf("Anfang: %li\n", test->head);*/
 
 	
 	write_buffer(test, &data3);
+
+	printf("\ntest->head: %li\n", test->head);
+
+	
 	
 	//free_buffer(test);
 	
