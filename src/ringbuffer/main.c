@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 int main(void) {
-	ring_buffer* test = init_buffer(2, free );
+	ring_buffer* test = init_buffer(5, free );
 	
 	char data = 'a';
 	char data2 = 'b';

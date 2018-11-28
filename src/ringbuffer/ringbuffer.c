@@ -8,7 +8,13 @@ ring_buffer *init_buffer(const size_t n, void (*f)(void *p)) {
 	if(n > 0){
 		buffer = (ring_buffer* )malloc(sizeof(ring_buffer));
 		buffer->elems = (void*)malloc(n* sizeof(void)); // unsicher ob das der richtige datentyp dafür ist
-		buffer->free_callback = f;
+
+		if(f == NULL){
+			buffer->free_callback = free;
+		} else {
+			buffer->free_callback = f;
+		}
+
 		buffer->head = 0;
 		buffer->count = 0;
 		buffer->size = n;
@@ -18,7 +24,7 @@ ring_buffer *init_buffer(const size_t n, void (*f)(void *p)) {
 
 
 void write_buffer(ring_buffer *cb, void *data) {
-	if(cb){
+	if(cb && data){
 		printf("\nWrite\n");
 		test(cb);
 		if(cb->count < cb->size  ){
@@ -48,12 +54,20 @@ void *read_buffer(ring_buffer *cb){
 	}
 	else{
 		void *ret = cb->elems[cb->head];				//Erstes Element, das noch nicht gelesen wurde
-		toNext(cb);							//Setze Head auf das nächst ältere Element
+		toPrev(cb);							//Setze Head auf das nächst ältere Element
 		cb->count--;							//Verkleinere count, damit der Buffer weiß, wie viele Elemente noch da sind
 
 		return ret;
 	}
 
+}
+
+void toPrev(ring_buffer *cb){
+	if(cb->head < 0){
+        	cb->head--;
+    	}else{
+        	cb->head = 0;
+    	}
 }
 
 void toNext(ring_buffer *cb){
