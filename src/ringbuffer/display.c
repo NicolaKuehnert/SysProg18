@@ -3,11 +3,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "ringbuffer/display.h"
-//#include "ringbuffer/ringbuffer.h"
-//#include "ledanzeige/TM1637.c"
+#include "ringbuffer/ringbuffer.h"
+#include "ledanzeige/TM1637.c"
 
 void display_status(void) {
-
+	printf("Hallo\n");
+	
 	/*ring_buffer* test = init_buffer(2, free );
 	char data = 'a';
 	char data2 = 'b';

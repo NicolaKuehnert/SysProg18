@@ -23,9 +23,9 @@ int main(void) {
 	void *ret = read_buffer(test);
 	printf("Readbuffer return value: %p\n\n", ret);
 
-	/*printf("Belegt: %li\n", test->count);
-	printf("Groesse: %li\n", test->size);
-	printf("Anfang: %li\n", test->head);*/
+	/*printf("Belegt: %ui\n", test->count);
+	printf("Groesse: %ui\n", test->size);
+	printf("Anfang: %ui\n", test->head);*/
 	
 	/*void** blub = &data;
 	printf("Test%x", (char*)(*blub));*/
@@ -48,7 +48,7 @@ int main(void) {
 	
 	write_buffer(test, &data3);
 
-	printf("\ntest->head: %li\n", test->head);
+	printf("\ntest->head: %u\n", test->head);
 
 	
 	//free_buffer(test);
