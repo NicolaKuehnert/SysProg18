@@ -83,7 +83,10 @@ void toNext(ring_buffer *cb){
 }
 
 int free_buffer(ring_buffer *cb){
-	if (cb) {
+	if(cb==NULL){
+		return NULL;
+	}
+	else {
         printf("\nfree all\n");
         size_t count = cb->count;
         for(int i =0;i<count;i++){
