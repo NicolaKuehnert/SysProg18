@@ -39,7 +39,6 @@ ring_buffer *init_buffer(const size_t n, void (*f)(void *p)) {
 		} else {
 			buffer->free_callback = f;
 		}
-
 		buffer->head = 0;
 		buffer->count = 0;
 		buffer->size = n;
