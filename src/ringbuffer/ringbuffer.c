@@ -28,8 +28,8 @@ void write_buffer(ring_buffer *cb, void *data) {
 			printf("content %c\n", *(char*)cb->elems[cb->head]);
 			//cb->free_callback((void*)cb->elems[cb->head]); kann noch nicht die callback methode aufrufen
 		}
-		cb->elems[cb->head] = data;
 		toNext(cb);
+		cb->elems[cb->head] = data;
 	}
 }
 
@@ -40,17 +40,17 @@ void test(ring_buffer * cb){
 }
 
 void *read_buffer(ring_buffer *cb){
+	if(cb == NULL){
+		return NULL;
+	}
 	if(cb->count == 0){
 		return NULL;
 	}
 	else{
 		void *ret = cb->elems[cb->head];				//Erstes Element, das noch nicht gelesen wurde
-		cb->head--;							//Setze Head auf das nächst ältere Element
+		toNext(cb);							//Setze Head auf das nächst ältere Element
 		cb->count--;							//Verkleinere count, damit der Buffer weiß, wie viele Elemente noch da sind
-		if(cb->head < 0){
-			cb->head = 0;						//Das Elemente Array kann nicht kleiner als 0 sein.
-		}
-		test(cb);
+
 		return ret;
 	}
 

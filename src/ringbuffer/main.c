@@ -35,6 +35,9 @@ int main(void) {
 	ret = read_buffer(test);
 	printf("Readbuffer return value: %p\n\n", ret);
 
+	ret = read_buffer(NULL);
+	printf("Readbuffer return value: %p\n\n", ret);
+
 	ret = read_buffer(test);
 	printf("Readbuffer return value: %p\n\n", ret);
 	
