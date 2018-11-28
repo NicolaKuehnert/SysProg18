@@ -13,12 +13,13 @@ DISPLAY_C = display.c
 DISPLAY_H = $(INCLUDE_PATH)/$(PROJECT)/display.h
 
 TM1637_C = ../ledanzeige/TM1637.c
+SEG_C = ../ledanzeige/segmentanzeige.c
 
 
 all: $(PROJECT)
 
 ringbuffer: main.o $(PROJECT).o display.o
-	gcc -o $(PROJECT) $(PROJECT).o display.o main.o
+	gcc -o $(PROJECT) $(PROJECT).o display.o main.o $(OFLAGS)
 	
 main.o: $(MAIN_C)
 	gcc $(CFLAGS) $(INCLUDE) $(MAIN_C)
@@ -26,7 +27,7 @@ main.o: $(MAIN_C)
 ringbuffer.o: $(RINGBUFFER_C)
 	gcc $(CFLAGS) $(INCLUDE) $(RINGBUFFER_C)
 	
-display.o: $(DISPLAY_C) $(TM1637_C)
+display.o: $(DISPLAY_C) $(TM1637_C) $(SEG_C)
 	gcc $(CFLAGS) $(INCLUDE) $(DISPLAY_C) $(TM1637_C)
 	
 run: all

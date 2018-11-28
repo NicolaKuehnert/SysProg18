@@ -50,7 +50,7 @@ int main(void) {
 
 	printf("\ntest->head: %u\n", test->head);
 
-	
+	display_status();
 	//free_buffer(test);
 	
 	return 0;
