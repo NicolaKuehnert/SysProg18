@@ -12,9 +12,9 @@ int main(void) {
 	// ich weiß nicht welches format data haben muss um es abzuspeichern
 	write_buffer(test, &data);
 
-	printf("Belegt: %li\n", test->count);
-	printf("Groesse: %li\n", test->size);
-	printf("Anfang: %li\n", test->head);
+	printf("Belegt: %u\n", test->count);
+	printf("Groesse: %u\n", test->size);
+	printf("Anfang: %u\n", test->head);
 	
 	
 	write_buffer(test, &data);
@@ -27,8 +27,8 @@ int main(void) {
 	printf("Groesse: %li\n", test->size);
 	printf("Anfang: %li\n", test->head);*/
 	
-	void** blub = &data;
-	printf("Test%x", (char*)(*blub));
+	/*void** blub = &data;
+	printf("Test%x", (char*)(*blub));*/
 	
 	write_buffer(test, &data3);
 
@@ -55,8 +55,8 @@ int main(void) {
 	
 	return 0;
 }
-
+/*
 void free (void* buffer){
 	printf("FREE: %s\n", *(char*)buffer);
-}
+}*/
 
