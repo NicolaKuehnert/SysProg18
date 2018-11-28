@@ -25,3 +25,4 @@ cmake-build-debug/
 \.idea/
 
 CMakeLists\.txt
+src/ringbuffer/desktop.ini
