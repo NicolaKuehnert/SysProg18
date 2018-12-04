@@ -4,22 +4,47 @@
 ring_buffer *buffer = NULL; 
 
 
+void test(ring_buffer * cb){
+	printf("Size: %u\n", (int)cb->size);
+	printf("count: %u\n", count_elements(cb));
+	printf("Head: %u\n\n", cb->head);
+}
+
+void toPrev(ring_buffer *cb){
+	if(cb->head < 0){
+        	cb->head--;
+    	}else{
+        	cb->head = 0;
+    	}
+}
+
+void toNext(ring_buffer *cb){
+	if(cb->head <(cb->size)-1){
+        cb->head++;
+    }else{
+        cb->head = 0;
+    }
+}
+
 ring_buffer *init_buffer(const size_t n, void (*f)(void *p)) {
-	if(n > 0){
+	if(f==NULL){
+		return NULL;
+	}
+	else if(n > 0){
 		buffer = (ring_buffer* )malloc(sizeof(ring_buffer));
-		buffer->elems = (void*)malloc(n* sizeof(void)); // unsicher ob das der richtige datentyp dafür ist
+		buffer->elems = (void*)malloc(n* sizeof(void*)); // unsicher ob das der richtige datentyp dafür ist
 
 		if(f == NULL){
 			buffer->free_callback = free;
 		} else {
 			buffer->free_callback = f;
 		}
-
 		buffer->head = 0;
 		buffer->count = 0;
 		buffer->size = n;
+		return buffer;
 	}
-	return buffer;
+	return NULL;
 }
 
 
@@ -39,11 +64,7 @@ void write_buffer(ring_buffer *cb, void *data) {
 	}
 }
 
-void test(ring_buffer * cb){
-	printf("Size: %li\n", (int)cb->size);
-	printf("count: %li\n", count_elements(cb));
-	printf("Head: %li\n\n", cb->head);
-}
+
 
 void *read_buffer(ring_buffer *cb){
 	if(cb == NULL){
@@ -62,24 +83,12 @@ void *read_buffer(ring_buffer *cb){
 
 }
 
-void toPrev(ring_buffer *cb){
-	if(cb->head < 0){
-        	cb->head--;
-    	}else{
-        	cb->head = 0;
-    	}
-}
-
-void toNext(ring_buffer *cb){
-	if(cb->head <(cb->size)-1){
-        cb->head++;
-    }else{
-        cb->head = 0;
-    }
-}
 
 int free_buffer(ring_buffer *cb){
-	if (cb) {
+	if(cb==NULL){
+		return (int) NULL;
+	}
+	else {
         printf("\nfree all\n");
         size_t count = cb->count;
         for(int i =0;i<count;i++){
