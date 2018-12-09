@@ -1,0 +1,1 @@
+float calculateTemperature(int raw);
