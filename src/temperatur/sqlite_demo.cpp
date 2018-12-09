@@ -31,6 +31,15 @@ I_SQLite::~I_SQLite(){
 }
 
 int main(){
+	I_SQLite db = I_SQLite("test.db");
+
+	db.exec("CREATE TABLE test(ID int, NAME text);");
+	db.exec("INSERT INTO test(ID, NAME) VALUES (0, 'test');");
+	db.exec("INSERT INTO test(ID, NAME) VALUES (1, 'test2');");
+	db.exec("INSERT INTO test(ID, NAME) VALUES (2, 'test3');");
+	db.exec("SELECT * FROM test;");
+	db.exec("DROP TABLE test;");
+
 	return 0;
 }
 
