@@ -1,8 +1,13 @@
-#include "temperatur/tempSensor.h"
 #include "temperatur/calcTemp.h"
+#include "temperatur/tempSensor.h"
 #include <string>
 #include <sstream>
-#include "temperatur/sqlite_demo.h"
+#include <iostream>
+#include <unistd.h>
+using namespace std;
+
+
+//#include "temperatur/sqlite_demo.h"
 
 #define LOOPCOUNT 5
 
@@ -13,9 +18,9 @@ int main(){
 
 	if(db.exec("CREATE TABLE temperatures(time text DEFAULT CURRENT_TIMESTAMP, temperature text);") == 0);
 */
-
+	calculateTemperature(1.1);
 	int runs = 0;
-	tempSensor sensor = tempSensor(calculateTemperatur);
+	TempSensor sensor = TempSensor(calculateTemperature);
 
 /*
 	//SQL Strings zum Speichern der Temperatur
