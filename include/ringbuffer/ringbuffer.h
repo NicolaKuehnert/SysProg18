@@ -16,3 +16,9 @@ int free_buffer(ring_buffer *cb);
 int count_elements(const ring_buffer *cb);
 
 #endif 
+
+ring_buffer *init_buffer(const size_t n, void (*f)(void *p));
+void write_buffer(ring_buffer *cb, void *data);
+void *read_buffer(ring_buffer *cb);
+int free_buffer(ring_buffer *cb);
+int count_elements(const ring_buffer *cb);
