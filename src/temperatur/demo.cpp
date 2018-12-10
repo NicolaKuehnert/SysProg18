@@ -4,6 +4,9 @@
 #include <sstream>
 #include <iostream>
 #include <unistd.h>
+#include <thread>
+#include <chrono>
+
 using namespace std;
 
 
@@ -18,25 +21,23 @@ int main(){
 
 	if(db.exec("CREATE TABLE temperatures(time text DEFAULT CURRENT_TIMESTAMP, temperature text);") == 0);
 */
-	calculateTemperature(1.1);
-	int runs = 0;
+	//cout << TempSensor::isInitialized; 
 	TempSensor sensor = TempSensor(calculateTemperature);
-
+	int runs = 0;
 /*
 	//SQL Strings zum Speichern der Temperatur
 	std::string sql = "INSERT INTO temperatures(time, Itemperature) VALUES(";
 	std::string sql2 = ");";
-*/
+*/	
+
 	while(true){
 		runs++;
-		
-		float temp = sensor.getTemp();
-
-		cout << temp;
-
-		sleep(10);
+		cout << sensor.getTemp();
+		cout << "\n";
+		std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 		
 		
 	}
+	
 	return 0;
 }
