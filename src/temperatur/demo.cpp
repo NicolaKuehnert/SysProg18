@@ -4,8 +4,6 @@
 #include <sstream>
 #include <iostream>
 #include <unistd.h>
-#include <thread>
-#include <chrono>
 
 using namespace std;
 
@@ -32,10 +30,8 @@ int main(){
 
 	while(true){
 		runs++;
-		cout << sensor.getTemp();
-		cout << "\n";
-		std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-		
+		cout << std::to_string(sensor.getTemp()) + "\n";
+		sleep(2);
 		
 	}
 	
