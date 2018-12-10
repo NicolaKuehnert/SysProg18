@@ -1,5 +1,7 @@
+#include <sqlite3.h>
 #ifndef ISQLITE
 #define ISQLITE
+
 class I_SQLite {
 
 	public:
