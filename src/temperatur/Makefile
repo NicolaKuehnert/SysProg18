@@ -1,5 +1,5 @@
 CFLAGS = -c -Wall -pedantic -g
-OFLAGS = -lwiringPi -pthread -lcrypt -lm -lrt -L../../lib -lringbuffer 
+OFLAGS = -lwiringPi -pthread -lcrypt -lm -lrt -L../../lib -lcurl -lringbuffer 
 PROJECT = temperatur
 INCLUDE_PATH = ../../include
 INCLUDE = -I$(INCLUDE_PATH) -I../ -I.
@@ -13,10 +13,13 @@ DISPLAY_C = display.c
 DISPLAY_H = $(INCLUDE_PATH)/$(PROJECT)/display.h
 
 CALC_TEMP_C = calcTemp.cpp
-CALC_TEMP_h = $(INCLUDE_PATH)/$(PROJECT)//calcTemp.h
+CALC_TEMP_H = $(INCLUDE_PATH)/$(PROJECT)/calcTemp.h
 
-SQLITE_C = sqlite_demo.cpp
-SQLITE_h = $(INCLUDE_PATH)/$(PROJECT)/sqlite_demo.h
+SQLITE_C = sql_demo.cpp
+SQLITE_H = $(INCLUDE_PATH)/$(PROJECT)/sql_demo.h
+
+CURL_C = curl_api.cpp
+CURL_H = $(INCLUDE_PATH)/$(PROJECT)/curl_api.h
 
 BUFFER_C = ../ringbuffer/ringbuffer.c
 BUFFER_H = $(INCLUDE_PATH)/ringbuffer/ringbuffer.h
@@ -27,8 +30,8 @@ SEG_C = ../ledanzeige/segmentanzeige.c
 
 all: $(PROJECT)
 
-$(PROJECT): ringbuffer demo.o tempSensor.o calcTemp.o
-	g++ -o $(PROJECT) calcTemp.o tempSensor.o demo.o $(OFLAGS)
+$(PROJECT): ringbuffer curl_api.o demo.o tempSensor.o calcTemp.o
+	g++ -o $(PROJECT) calcTemp.o curl_api.o tempSensor.o demo.o $(OFLAGS)
 	
 demo.o: $(MAIN_C)
 	g++ $(CFLAGS) $(INCLUDE) $(MAIN_C) 
@@ -44,6 +47,9 @@ sqlite.o: $(SQLITE_C) $(SQLITE_H)
 	
 ringbuffer: 
 	make -C ../ringbuffer install_buffer
+	
+curl_api.o: $(CURL_C) $(CURL_H)
+	g++ $(CFLAGS) $(INCLUDE) $(CURL_C)
 	
 	
 #display.o: $(DISPLAY_C) $(TM1637_C) $(SEG_C)

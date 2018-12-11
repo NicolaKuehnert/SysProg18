@@ -1,8 +1,11 @@
 #include <curl/curl.h>
 #include <iostream>
+#include "temperatur/curl_api.h"
+using namespace std;
 
-static size_t curl_api::f(char *data, size_t size, size_t nmemb, void *userdata){
+size_t curl_api::f(char *data, size_t size, size_t nmemb, void *userdata){
 	//save the userdata
+	return 0;
 }
 
 curl_api::curl_api(){
@@ -23,6 +26,6 @@ void curl_api::exec(){
 	}
 }
 
-~curl_api(){
+curl_api::~curl_api(){
 	curl_easy_cleanup(handle);
 }
