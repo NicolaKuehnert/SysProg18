@@ -12,7 +12,7 @@ SRC_PRUEF = src/pruefungen/
 SRC_SPEICHER = src/speicherverwaltung/
 INC_SPEICHER = include/speicherverwaltung/
 
-LED_BIB = all_libledanzeige.so
+LED_BIB = libledanzeige.so
 LIB_FLAG = -L. -l$(LED_LIB)
 
 DEMO = $(SRC_LED)demo.c
@@ -37,7 +37,7 @@ O_FILES = demo.o segmentanzeige.o
 
 
 ##default target
-all: all_libledanzeige.so install_libledanzeige demo studi pruef speicher
+all: libledanzeige.so install_ledanzeige demo studi pruef speicher
 
 ##ledanzeige
 
@@ -84,14 +84,14 @@ main.o: $(MAIN_C) $(SPEICHER_H)
 
 ##Bibliothek aus LED-Anzeige
 
-all_libledanzeige.so: $(SRC_LED)segmentanzeige.c $(SRC_LED)TM1637.c
+libledanzeige.so: $(SRC_LED)segmentanzeige.c $(SRC_LED)TM1637.c
 	gcc -c -fpic $(SRC_LED)segmentanzeige.c $(INCLUDE)
 	gcc -c -fpic $(SRC_LED)TM1637.c $(INCLUDE)
-	gcc -shared -o all_libledanzeige.so segmentanzeige.o TM1637.o
+	gcc -shared -o libledanzeige.so segmentanzeige.o TM1637.o
 	
-install_libledanzeige: all_libledanzeige.so
+install_ledanzeige: libledanzeige.so
 	mkdir -p lib/
-	cp all_libledanzeige.so lib/
+	mv libledanzeige.so lib/
 
 
 
@@ -127,7 +127,7 @@ test: test-speicher test-pruef test-demo test-studi
 ##clean up
 .PHONY: clean
 clean:
-	rm demo.o main.o segmentanzeige.o demo pruefungen.o pruef studiverwaltung.o studi TM1637.o speicherverwaltung.o speicher all_libledanzeige.so 
+	rm demo.o main.o segmentanzeige.o demo pruefungen.o pruef studiverwaltung.o studi TM1637.o speicherverwaltung.o speicher libledanzeige.so 
 	rm -rf lib/
 
 ##Documentation

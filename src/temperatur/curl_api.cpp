@@ -3,7 +3,7 @@
 #include "temperatur/curl_api.h"
 using namespace std;
 
-size_t curl_api::f(char *data, size_t size, size_t nmemb, void *userdata){
+static size_t f(char *data, size_t size, size_t nmemb, void *userdata){
 	//save the userdata
 	return 0;
 }
@@ -16,13 +16,11 @@ curl_api::curl_api(){
 	
 }
 
-
-
 void curl_api::exec(){
 	CURLcode res = curl_easy_perform(handle);
 
 	if(res){
-		cout << "An Error occured";
+		std::cout << "An Error occured";
 	}
 }
 

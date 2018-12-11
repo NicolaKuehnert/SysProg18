@@ -3,6 +3,7 @@
 #include "temperatur/sqlite_demo.h"
 #include <ringbuffer/ringbuffer.h>
 #include "ledanzeige/TM1637.h"
+#include "ledanzeige/segmentanzeige.h"
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -26,7 +27,7 @@ int main(){
 	//cout << TempSensor::isInitialized; 
 	TempSensor sensor = TempSensor(calculateTemperature);
 	int runs = 0;
-	//TM1637_setup();
+	TM1637_setup();
 
 /*
 	//SQL Strings zum Speichern der Temperatur
@@ -40,8 +41,8 @@ int main(){
 		
 		float temp = sensor.getTemp();
 		cout << std::to_string(temp) + "\n";
-		/*write_buffer(buffer, &temp);
-		TM1637_display_number(percent(buffer));*/
+		//write_buffer(buffer, &temp);
+		//TM1637_display_number(percent(temp));
 
 		sleep(10);
 		

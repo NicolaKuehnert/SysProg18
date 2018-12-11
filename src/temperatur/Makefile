@@ -1,5 +1,5 @@
 CFLAGS = -c -Wall -pedantic -g
-OFLAGS = -lwiringPi -pthread -lcrypt -lm -lrt -L../../lib -lcurl -lringbuffer 
+OFLAGS = -pthread -lcrypt -lm -lrt -lcurl -lwiringPi -L../../lib -lringbuffer -lledanzeige
 PROJECT = temperatur
 INCLUDE_PATH = ../../include
 INCLUDE = -I$(INCLUDE_PATH) -I../ -I.
@@ -30,11 +30,11 @@ SEG_C = ../ledanzeige/segmentanzeige.c
 
 all: $(PROJECT)
 
-$(PROJECT): ringbuffer curl_api.o demo.o tempSensor.o calcTemp.o
+$(PROJECT): ringbuffer ledanzeige curl_api.o demo.o tempSensor.o calcTemp.o
 	g++ -o $(PROJECT) calcTemp.o curl_api.o tempSensor.o demo.o $(OFLAGS)
 	
 demo.o: $(MAIN_C)
-	g++ $(CFLAGS) $(INCLUDE) $(MAIN_C) 
+	g++ $(CFLAGS) $(INCLUDE) $(MAIN_C)
 
 tempSensor.o: $(TEMPERATUR_C) $(TEMPERATUR_H)
 	g++ $(CFLAGS) $(INCLUDE) $(TEMPERATUR_C)
@@ -52,8 +52,8 @@ curl_api.o: $(CURL_C) $(CURL_H)
 	g++ $(CFLAGS) $(INCLUDE) $(CURL_C)
 	
 	
-#display.o: $(DISPLAY_C) $(TM1637_C) $(SEG_C)
-#	g++ $(CFLAGS) $(INCLUDE) $(DISPLAY_C) $(TM1637_C)
+ledanzeige: $(TM1637_C)
+	make -C ../../ install_ledanzeige
 	
 run: all
 	clear && ./$(PROJECT)
