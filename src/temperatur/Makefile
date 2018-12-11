@@ -13,7 +13,7 @@ DISPLAY_C = display.c
 DISPLAY_H = $(INCLUDE_PATH)/$(PROJECT)/display.h
 
 CALC_TEMP_C = calcTemp.cpp
-CALC_TEMP_h = $(INCLUDE_PATH)/$(PROJECT)//calcTemp.h
+CALC_TEMP_h = $(INCLUDE_PATH)/$(PROJECT)/calcTemp.h
 
 SQLITE_C = sqlite_demo.cpp
 SQLITE_h = $(INCLUDE_PATH)/$(PROJECT)/sqlite_demo.h
@@ -21,7 +21,7 @@ SQLITE_h = $(INCLUDE_PATH)/$(PROJECT)/sqlite_demo.h
 BUFFER_C = ../ringbuffer/ringbuffer.c
 BUFFER_H = $(INCLUDE_PATH)/ringbuffer/ringbuffer.h
 
-TM1637_C = ../ledanzeige/TM1637.c
+TM1637_C = ../ledanzeige/TM1637.C
 SEG_C = ../ledanzeige/segmentanzeige.c
 
 
@@ -31,7 +31,7 @@ $(PROJECT): ringbuffer demo.o tempSensor.o calcTemp.o
 	g++ -o $(PROJECT) calcTemp.o tempSensor.o demo.o $(OFLAGS)
 	
 demo.o: $(MAIN_C)
-	g++ $(CFLAGS) $(INCLUDE) $(MAIN_C) 
+	g++ $(CFLAGS) $(INCLUDE) $(MAIN_C) $(TM1637_C)
 
 tempSensor.o: $(TEMPERATUR_C) $(TEMPERATUR_H)
 	g++ $(CFLAGS) $(INCLUDE) $(TEMPERATUR_C)
