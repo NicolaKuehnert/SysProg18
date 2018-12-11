@@ -38,7 +38,7 @@ int main(){
 		
 		
 		float temp = sensor.getTemp();
-    cout << std::to_string(temp) + "\n";
+		cout << std::to_string(temp) + "\n";
 		write_buffer(buffer, temp);
 		TM1637_display_number(percent(buffer));
 
