@@ -1,5 +1,5 @@
 CFLAGS = -c -Wall -pedantic -g
-OFLAGS = -lwiringPi -pthread -lcrypt -lm -lrt
+OFLAGS = -lwiringPi -pthread -lcrypt -lm -lrt -L../../lib -lringbuffer 
 PROJECT = temperatur
 INCLUDE_PATH = ../../include
 INCLUDE = -I$(INCLUDE_PATH) -I../ -I.
@@ -7,16 +7,19 @@ INCLUDE = -I$(INCLUDE_PATH) -I../ -I.
 MAIN_C = demo.cpp
 
 TEMPERATUR_C = tempSensor.cpp
-TEMPERATUR_H = $(INCLUDE_PATH)/tempSensor.h
+TEMPERATUR_H = $(INCLUDE_PATH)/temperatur/tempSensor.h
 
 DISPLAY_C = display.c
 DISPLAY_H = $(INCLUDE_PATH)/$(PROJECT)/display.h
 
 CALC_TEMP_C = calcTemp.cpp
-CALC_TEMP_h = $(INCLUDE_PATH)/calcTemp.h
+CALC_TEMP_h = $(INCLUDE_PATH)/$(PROJECT)//calcTemp.h
 
 SQLITE_C = sqlite_demo.cpp
-SQLITE_h = $(INCLUDE_PATH)/sqlite_demo.h
+SQLITE_h = $(INCLUDE_PATH)/$(PROJECT)/sqlite_demo.h
+
+BUFFER_C = ../ringbuffer/ringbuffer.c
+BUFFER_H = $(INCLUDE_PATH)/ringbuffer/ringbuffer.h
 
 TM1637_C = ../ledanzeige/TM1637.c
 SEG_C = ../ledanzeige/segmentanzeige.c
@@ -24,20 +27,24 @@ SEG_C = ../ledanzeige/segmentanzeige.c
 
 all: $(PROJECT)
 
-$(PROJECT): demo.o tempSensor.o calcTemp.o
-	g++ -o $(PROJECT) calcTemp.o tempSensor.o demo.o  $(OFLAGS)
+$(PROJECT): ringbuffer demo.o tempSensor.o calcTemp.o
+	g++ -o $(PROJECT) calcTemp.o tempSensor.o demo.o $(OFLAGS)
 	
-demo.o: $(MAIN_C) 
-	g++ $(CFLAGS) $(INCLUDE) $(MAIN_C)
+demo.o: $(MAIN_C)
+	g++ $(CFLAGS) $(INCLUDE) $(MAIN_C) 
 
-tempSensor.o: $(TEMPERATUR_C)
+tempSensor.o: $(TEMPERATUR_C) $(TEMPERATUR_H)
 	g++ $(CFLAGS) $(INCLUDE) $(TEMPERATUR_C)
 	
-calcTemp.o: $(CALC_TEMP_C)
+calcTemp.o: $(CALC_TEMP_C) $(CALC_TEMP_H)
 	g++ $(CFLAGS) $(INCLUDE) $(CALC_TEMP_C)
 	
-sqlite.o: $(SQLITE_C)
+sqlite.o: $(SQLITE_C) $(SQLITE_H)
 	g++ $(CFLAGS) $(INCLUDE) $(SQLITE_C)
+	
+ringbuffer: 
+	make -C ../ringbuffer install_buffer
+	
 	
 #display.o: $(DISPLAY_C) $(TM1637_C) $(SEG_C)
 #	g++ $(CFLAGS) $(INCLUDE) $(DISPLAY_C) $(TM1637_C)

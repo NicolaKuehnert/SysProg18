@@ -2,6 +2,7 @@
 #define RINGBUFFER_H
 
 #include <stdlib.h>
+#define percent(x) ((100 / x->size) * count_elements(x))
 
 typedef struct ring_buffer {
 size_t size, count, head;

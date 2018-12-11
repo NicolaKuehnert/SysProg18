@@ -30,6 +30,14 @@ ringbuffer.o: $(RINGBUFFER_C)
 display.o: $(DISPLAY_C) $(TM1637_C) $(SEG_C)
 	gcc $(CFLAGS) $(INCLUDE) $(DISPLAY_C) $(TM1637_C)
 	
+libringbuffer.so: $(PROJECT).c
+	gcc -c -fpic $(PROJECT).c $(INCLUDE)
+	gcc -shared -o libringbuffer.so ringbuffer.o
+	
+install_buffer: libringbuffer.so
+	mkdir -p ../../lib && mv libringbuffer.so ../../lib/libringbuffer.so
+	rm ringbuffer.o
+	
 run: all
 	clear
 	./$(PROJECT)

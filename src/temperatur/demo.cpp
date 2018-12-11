@@ -1,14 +1,15 @@
 #include "temperatur/calcTemp.h"
 #include "temperatur/tempSensor.h"
+#include "temperatur/sqlite_demo.h"
+#include "ringbuffer/ringbuffer.h"
+#include "ledanzeige/TM1637.h"
 #include <string>
 #include <sstream>
 #include <iostream>
 #include <unistd.h>
 
 
-#include "temperatur/sqlite_demo.h"
-#include "ringbuffer/ringbuffer.h"
-#include "ledanzeige/TM1637.h"
+
 using namespace std;
 
 #define LOOPCOUNT 5
@@ -16,7 +17,7 @@ using namespace std;
 
 int main(){
 
-	ring_buffer buffer = init_buffer(10, free);
+	ring_buffer* buffer = init_buffer(10, free);
 /*
 	I_SQLite db = I_SQLite("temperatur.db");
 
@@ -39,7 +40,7 @@ int main(){
 		
 		float temp = sensor.getTemp();
 		cout << std::to_string(temp) + "\n";
-		write_buffer(buffer, temp);
+		write_buffer(buffer, &temp);
 		TM1637_display_number(percent(buffer));
 
 		sleep(10);
