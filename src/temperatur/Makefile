@@ -1,5 +1,6 @@
 CFLAGS = -c -Wall -pedantic -g
-OFLAGS = -pthread -lcrypt -lm -lrt -lcurl -lwiringPi -L../../lib -lringbuffer -lledanzeige
+LIBS = -L../../lib -lringbuffer -lledanzeige
+OFLAGS = -pthread -lcrypt -lm -lrt -lcurl -lwiringPi $(LIBS) -Wl,-rpath=../../lib
 PROJECT = temperatur
 INCLUDE_PATH = ../../include
 INCLUDE = -I$(INCLUDE_PATH) -I../ -I.
