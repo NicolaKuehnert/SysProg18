@@ -33,7 +33,7 @@ int main(){
 
 	//SQL Strings zum Speichern der Temperatur
 	std::string sql = "INSERT INTO Itemperatures(temperature) VALUES('";
-	std::string sql2 = "INSERT INTO Atemperatures(Atemperature, Itemperatur) VALUES(";
+	std::string sql2 = "INSERT INTO Atemperatures(Atemperature, Itemperatur) VALUES('";
 	
 
 	test();
@@ -45,11 +45,9 @@ int main(){
 		
 		float temp = sensor.getTemp();
 		insert += sql;
-		insert += temp;
+		insert += std::to_string(temp);
 		insert += "');";
-		cout << insert;
 		char *ptr = &insert[0u];
-		cout << ptr;
 		db.exec(ptr);
 
 		/*
@@ -60,16 +58,16 @@ int main(){
 			float alltemps = 0;
 
 			for(int i = 0; i<items; i++){
-				//alltemps+=(float*)read_buffer(buffer);   //Wie castet man das zu float?
+				//alltemps+=(float*)read_buffer(buffer);
 			}
 			float mid = alltemps/(float)items;
 
 			insert = "";
 			insert += sql2;
-			insert += "AusenTemp"; //Hier kommt der Wert aus der XML später rein
+			insert += "'AusenTemp'";				//Hier kommt der Wert aus der XML später rein
 			insert+= ",";
-			insert+=mid;
-			insert += ");";
+			insert+=std::to_string(mid);
+			insert += "');";
 			char *ptr2 = &insert[0u];
 			db.exec(ptr2);
 		}
@@ -84,6 +82,7 @@ int main(){
 		
 		
 	}
+	
 	
 	return 0;
 }
