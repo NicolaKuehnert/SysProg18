@@ -32,7 +32,7 @@ int main(){
 
 
 	//SQL Strings zum Speichern der Temperatur
-	std::string sql = "INSERT INTO Itemperatures(temperature) VALUES(";
+	std::string sql = "INSERT INTO Itemperatures(temperature) VALUES('";
 	std::string sql2 = "INSERT INTO Atemperatures(Atemperature, Itemperatur) VALUES(";
 	
 
@@ -45,10 +45,11 @@ int main(){
 		
 		float temp = sensor.getTemp();
 		insert += sql;
-		insert += "'";
 		insert += temp;
 		insert += "');";
+		cout << insert;
 		char *ptr = &insert[0u];
+		cout << ptr;
 		db.exec(ptr);
 
 		/*
