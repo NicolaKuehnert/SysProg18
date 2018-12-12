@@ -91,7 +91,7 @@ libledanzeige.so: $(SRC_LED)segmentanzeige.c $(SRC_LED)TM1637.c
 	
 install_ledanzeige: libledanzeige.so
 	mkdir -p lib/
-	mv libledanzeige.so lib/
+	cp libledanzeige.so lib/
 
 
 

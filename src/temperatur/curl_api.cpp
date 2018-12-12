@@ -1,18 +1,17 @@
 #include <curl/curl.h>
 #include <iostream>
 #include "temperatur/curl_api.h"
-using namespace std;
-
-std::string sdata;
+#include <string>
+char*  sdata;
 
 static size_t f(char *data, size_t size, size_t nmemb, void *userdata){
 	sdata = data;
 
-	return sdata.size();
+	return sizeof(sdata);
 }
 
 curl_api::curl_api(){
-	char *ptr = URL;
+	char*  ptr = URL;
 	handle = curl_easy_init();
 	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, f);
 	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &sdata);
@@ -32,15 +31,15 @@ curl_api::~curl_api(){
 	curl_easy_cleanup(handle);
 }
 
-std::string curl_api::get_data(){
+char*  curl_api::get_data(){
 	return sdata;
 }
-/*
-int main(){
+
+int test(void){
 
 	curl_api handler = curl_api();
 	handler.exec();
-	std::string ret = handler.get_data();
+	char*  ret = handler.get_data();
 	std::cout << ret << "\n";
 	return 0;
-}*/
+}

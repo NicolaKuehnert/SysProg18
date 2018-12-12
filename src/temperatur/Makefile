@@ -1,9 +1,10 @@
 CFLAGS = -c -Wall -pedantic -g
-LIBS = -L../../lib -lringbuffer -lledanzeige
-OFLAGS = -pthread -lcrypt -lm -lrt -lcurl -lwiringPi $(LIBS) -Wl,-rpath=../../lib
+LIB_PATH = ../../lib
+LIBS = -L$(LIB_PATH) -lledanzeige -lringbuffer
+OFLAGS = -pthread -lcrypt -lm -lrt -lcurl -lwiringPi $(LIBS) -Wl,-rpath=$(LIB_PATH)
 PROJECT = temperatur
 INCLUDE_PATH = ../../include
-INCLUDE = -I$(INCLUDE_PATH) -I../ -I.
+INCLUDE = -I$(INCLUDE_PATH) -I.
 
 MAIN_C = demo.cpp
 
@@ -29,9 +30,9 @@ TM1637_C = ../ledanzeige/TM1637.c
 SEG_C = ../ledanzeige/segmentanzeige.c
 
 
-all: $(PROJECT)
+all: ringbuffer ledanzeige $(PROJECT) 
 
-$(PROJECT): ringbuffer ledanzeige curl_api.o demo.o tempSensor.o calcTemp.o
+$(PROJECT): curl_api.o demo.o tempSensor.o calcTemp.o
 	g++ -o $(PROJECT) calcTemp.o curl_api.o tempSensor.o demo.o $(OFLAGS)
 	
 demo.o: $(MAIN_C)
@@ -47,7 +48,7 @@ sqlite.o: $(SQLITE_C) $(SQLITE_H)
 	g++ $(CFLAGS) $(INCLUDE) $(SQLITE_C)
 	
 ringbuffer: 
-	make -C ../ringbuffer install_buffer
+	make -C ../ringbuffer install_ringbuffer
 	
 curl_api.o: $(CURL_C) $(CURL_H)
 	g++ $(CFLAGS) $(INCLUDE) $(CURL_C)
@@ -63,4 +64,4 @@ test: all
 	make -C ../../tests/$(PROJECT)
 
 clean: 
-	rm *.o $(PROJECT)
+	rm *.o $(PROJECT) || make -C ../ringbuffer/ clean
