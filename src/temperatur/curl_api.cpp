@@ -3,16 +3,20 @@
 #include "temperatur/curl_api.h"
 using namespace std;
 
+std::string sdata;
+
 static size_t f(char *data, size_t size, size_t nmemb, void *userdata){
-	//save the userdata
-	return 0;
+	sdata = data;
+
+	return sdata.size();
 }
 
 curl_api::curl_api(){
+	char *ptr = URL;
 	handle = curl_easy_init();
 	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, f);
-	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &data);
-	curl_easy_setopt(handle, CURLOPT_URL, &URL);
+	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &sdata);
+	curl_easy_setopt(handle, CURLOPT_URL, ptr);
 	
 }
 
@@ -20,10 +24,23 @@ void curl_api::exec(){
 	CURLcode res = curl_easy_perform(handle);
 
 	if(res){
-		std::cout << "An Error occured";
+		std::cout << curl_easy_strerror(res) << "\n";
 	}
 }
 
 curl_api::~curl_api(){
 	curl_easy_cleanup(handle);
 }
+
+std::string curl_api::get_data(){
+	return sdata;
+}
+/*
+int main(){
+
+	curl_api handler = curl_api();
+	handler.exec();
+	std::string ret = handler.get_data();
+	std::cout << ret << "\n";
+	return 0;
+}*/
