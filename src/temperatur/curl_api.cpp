@@ -2,7 +2,8 @@
 #include <iostream>
 #include "temperatur/curl_api.h"
 #include <string>
-char*  sdata;
+using namespace std;
+std::string  sdata;
 
 static size_t f(char *data, size_t size, size_t nmemb, void *userdata){
 	sdata = data;
@@ -31,7 +32,7 @@ curl_api::~curl_api(){
 	curl_easy_cleanup(handle);
 }
 
-char*  curl_api::get_data(){
+std::string  curl_api::get_data(){
 	return sdata;
 }
 
@@ -39,7 +40,7 @@ int test(void){
 
 	curl_api handler = curl_api();
 	handler.exec();
-	char*  ret = handler.get_data();
+	std::string  ret = handler.get_data();
 	std::cout << ret << "\n";
 	return 0;
 }

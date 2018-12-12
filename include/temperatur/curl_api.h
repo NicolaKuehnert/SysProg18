@@ -1,4 +1,6 @@
 #include <curl/curl.h>
+#include <string>
+
 
 
 class curl_api{
@@ -6,7 +8,7 @@ class curl_api{
 		curl_api();
 		void exec();
 		~curl_api();
-		char*  get_data();
+		std::string  get_data();
 
 	private:
 		CURL *handle;
