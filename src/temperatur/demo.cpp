@@ -19,7 +19,7 @@ using namespace std;
 
 
 int main(){
-	ring_buffer* buffer = init_buffer(10, free);
+	//ring_buffer* buffer = init_buffer(10, free);
 
 	I_SQLite db = I_SQLite("temperatur.db");
 
@@ -45,11 +45,13 @@ int main(){
 		
 		float temp = sensor.getTemp();
 		insert += sql;
+		insert += "'";
 		insert += temp;
-		insert += ");";
+		insert += "');";
 		char *ptr = &insert[0u];
 		db.exec(ptr);
 
+		/*
 		if(runs == LOOPCOUNT){
 			//hier dann die Außentemperatur in die DB
 			runs = 0;
@@ -70,9 +72,10 @@ int main(){
 			char *ptr2 = &insert[0u];
 			db.exec(ptr2);
 		}
+		*/
 
 		cout << std::to_string(temp) + "\n";
-		write_buffer(buffer, &temp);
+		//write_buffer(buffer, &temp);
 		//TM1637_display_number(percent(buffer));
 		TM1637_display_number(temp);
 
