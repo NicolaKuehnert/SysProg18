@@ -8,7 +8,7 @@ std::string  sdata;
 static size_t f(char *data, size_t size, size_t nmemb, void *userdata){
 	sdata = data;
 
-	return sizeof(sdata);
+	return sdata.size();
 }
 
 curl_api::curl_api(){

@@ -65,3 +65,4 @@ test: all
 
 clean: 
 	rm *.o $(PROJECT) || make -C ../ringbuffer/ clean
+	rm *.db
