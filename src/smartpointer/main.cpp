@@ -1,8 +1,7 @@
 #include "smartpointer/RefCounter.h"
-#include "smartpointer/SmartPointer.h"
-#include "smartpointer/SmartPointerImpl.h"
-#include "smartpointer/NullPointerException.h"
+void test(void);
 
 int main(void) {
+	test();
 	return 0;
 }
