@@ -5,63 +5,65 @@
 #include "smartpointer/SmartPointer.h"
 
 template<class T>
+
 SmartPointer<T>::SmartPointer(T * const p) {
-	SmartPointer::pObj = p;
-	SmartPointer::rc = new RefCounter;
+	pObj = p;
+	rc = new RefCounter;
 }
-
-SmartPointer<T>::SmartPointer(const SmartPointer&){
-	SmartPointer::pObj = SmartPointer<T>::getObject();
-	SmartPointer::rc = SmartPointer<T>::getRefCounter();
-}/*
-
-SmartPointer::~SmartPointer(){
+template<class T>
+SmartPointer<T>::SmartPointer(const SmartPointer<T>&){
+	pObj = SmartPointer<T>::getObject();
+	rc = SmartPointer<T>::getRefCounter();
+}
+template<class T>
+SmartPointer<T>::~SmartPointer(){
 	SmartPointer::deleteObject();
 }
-
-T* SmartPointer::operator->() const { // irgendwie dereferenzieren...
+template<class T>
+T* SmartPointer<T>::operator->() const { // irgendwie dereferenzieren...
 	return *SmartPointer::pObj;
 }
-
-T& SmartPointer::operator*() const {
+template<class T>
+T& SmartPointer<T>::operator*() const {
 	return &SmartPointer::pObj;
 }
-
-const T *SmartPointer::getObject() const {
-	return SmartPointer::pObj;
+template<class T>
+const T *SmartPointer<T>::getObject() const {
+	return pObj;
 }
-
-const RefCounter* SmartPointer::getRefCounter(){
-	return SmartPointer::rc;
+template<class T>
+const RefCounter* SmartPointer<T>::getRefCounter() const{
+	return rc;
 }
-
-const SmartPointer& SmartPointer::operator= (T* const p) {
-	SmartPointer::pObj = T;
-	SmartPointer::rc = new RefCounter;
+template<class T>
+const SmartPointer<T>& SmartPointer<T>::operator= (T* const p) {
+	pObj = p;
+	rc = new RefCounter;
 }
-
-const SmartPointer& SmartPointer::operator= (const SmartPointer&) {
-	SmartPointer::pObj = SmartPointer::getIbject();
-	SmartPointer::rc = SmartPointer::getRefCounter();
+template<class T>
+const SmartPointer<T>& SmartPointer<T>::operator= (const SmartPointer&) {
+	pObj = SmartPointer::getObject();
+	rc = SmartPointer::getRefCounter();
 }
-
-bool SmartPointer::operator==(const SmartPointer& sp){
-	return sp->getObject() == SmartPointer::pObj;
+template<class T>
+bool SmartPointer<T>::operator== (const SmartPointer& sp) const{
+	return sp->getObject() ==pObj;
 }
-
-bool SmartPointer::operator!=(const SmartPointer& sp){
+template<class T>
+bool SmartPointer<T>::operator!=(const SmartPointer& sp) const{
 	return sp->getObject() != SmartPointer::pObj;
 }
-
-bool SmartPointer::operator bool () {
-	return SmartPointer::pObj != nullptr;
+template<class T>
+SmartPointer<T>::operator bool () const{
+	return pObj != nullptr;
+}
+template<class T>
+void SmartPointer<T>::deleteObject(){
+	delete rc;
+	delete pObj;
+	delete this;
 }
 
-void SmartPointer::deleteObject(){
-	~SmartPointer::rc;
-	~SmartPointer::pObj;
-}
-*/
 
 
 

@@ -11,13 +11,15 @@ MAIN_C = main.cpp
 REFCOUNTER_C = RefCounter.cpp
 REFCOUNTER_H = $(INCLUDE_PATH)/$(PROJECT)/RefCounter.h
 
+SMARTPTRIMPL_H = $(INCLUDE_PATH)/$(PROJECT)/SmartPointerImpl.h
+
 
 all: $(PROJECT) 
 
 $(PROJECT): main.o RefCounter.o
 	g++ -o $(PROJECT) main.o RefCounter.o $(OFLAGS)
 	
-main.o: $(MAIN_C)
+main.o: $(MAIN_C) $(SMARTPTRIMPL_H)
 	g++ $(CFLAGS) $(INCLUDE) $(MAIN_C)
 	
 RefCounter.o: $(REFCOUNTER_C) $(REFCOUNTER_H)
