@@ -1,4 +1,4 @@
-CFLAGS = -c -Wall -pedantic -g
+CFLAGS = -c -std=c++14 -Wall -pedantic -g
 LIB_PATH = ../../lib
 LIBS = -L$(LIB_PATH) -lledanzeige
 OFLAGS = -pthread -lcrypt -lm -lrt -lwiringPi 
