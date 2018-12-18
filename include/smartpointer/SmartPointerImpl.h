@@ -6,14 +6,14 @@
 
 template<class T>
 
-SmartPointer<T>::SmartPointer(T * const p) {
-	pObj = p;
-	rc = new RefCounter;
+SmartPointer<T>::SmartPointer(T * const p) { // hier muss eigentlich ein default parameter angegeben werden
+	this->pObj = p;
+	this->rc = new RefCounter;
 }
 template<class T>
 SmartPointer<T>::SmartPointer(const SmartPointer<T>&){
-	pObj = getObject();
-	rc = getRefCounter();
+	pObj = this->getObject();
+	rc = this->getRefCounter();
 }
 template<class T>
 SmartPointer<T>::~SmartPointer(){
