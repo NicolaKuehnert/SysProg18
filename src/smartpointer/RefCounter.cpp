@@ -29,7 +29,7 @@ unsigned int RefCounter::getRefCount() const{
 void test(){
 	RefCounter* t =new  RefCounter;
 	std::cout << std::to_string(t->getRefCount()) + "\n";
-	
+	t->inc();
 	std::cout << std::to_string(t->getRefCount()) + "\n";
 	t->dec();
 }

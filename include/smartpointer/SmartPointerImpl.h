@@ -2,21 +2,26 @@
 #define SmartPointerImpl_H
 
 #include "smartpointer/RefCounter.h"
+#include <iostream>
+
 #include "smartpointer/SmartPointer.h"
 
 template<class T>
 
 SmartPointer<T>::SmartPointer(T * const p) { // hier muss eigentlich ein default parameter angegeben werden
+	std::cout << "create\n";
 	this->pObj = p;
 	this->rc = new RefCounter;
 }
 template<class T>
-SmartPointer<T>::SmartPointer(const SmartPointer<T>&){
-	const T* pObj = this->getObject();
-	const RefCounter* rc = this->getRefCounter();
+SmartPointer<T>::SmartPointer(const SmartPointer<T>& p){
+	std::cout << "create2\n";
+	this->pObj= p.pObj;
+	this->rc = p.rc;
 }
 template<class T>
 SmartPointer<T>::~SmartPointer(){
+	std::cout << "delete\n";
 	deleteObject();
 }
 template<class T>
@@ -37,21 +42,21 @@ const RefCounter* SmartPointer<T>::getRefCounter() const{
 }
 template<class T>
 const SmartPointer<T>& SmartPointer<T>::operator= (T* const p) {
+	std::cout << "assign\n";
 	pObj = p;
-	rc = new RefCounter;
-	
+	rc = new RefCounter;	
 }
 template<class T>
-const SmartPointer<T>& SmartPointer<T>::operator= (const SmartPointer&) {
-	const T* pObj = getObject();
-	const RefCounter* rc = getRefCounter();
+const SmartPointer<T>& SmartPointer<T>::operator= (const SmartPointer<T>& p) {
+	this->pObj = p.getObject();
+	this->rc = p.getRefCounter();
 }
 template<class T>
-bool SmartPointer<T>::operator== (const SmartPointer& sp) const{
+bool SmartPointer<T>::operator == (const SmartPointer& sp) const{
 	return sp.getObject() ==pObj;
 }
 template<class T>
-bool SmartPointer<T>::operator!=(const SmartPointer& sp) const{
+bool SmartPointer<T>::operator != (const SmartPointer& sp) const{
 	return sp.getObject() != pObj;
 }
 template<class T>
@@ -61,9 +66,9 @@ SmartPointer<T>::operator bool () const{
 template<class T>
 void SmartPointer<T>::deleteObject(){
 	delete rc;
-	delete pObj;
-	delete this;
 }
+
+
 
 
 
