@@ -10,7 +10,6 @@
 template<class T>
 
 SmartPointer<T>::SmartPointer(T * const p) {
-	std::cout << "create\n";
 	this->pObj = p;
 	if(p != nullptr){
 		this->rc = new RefCounter;
@@ -20,13 +19,11 @@ SmartPointer<T>::SmartPointer(T * const p) {
 }
 template<class T>
 SmartPointer<T>::SmartPointer(const SmartPointer<T>& p){
-	std::cout << "create2\n";
 	this->pObj= p.pObj;
 	this->rc = p.rc;
 }
 template<class T>
 SmartPointer<T>::~SmartPointer(){
-	std::cout << "delete\n";
 	deleteObject();
 }
 template<class T>
@@ -56,7 +53,6 @@ const RefCounter* SmartPointer<T>::getRefCounter() const{
 }
 template<class T>
 const SmartPointer<T>& SmartPointer<T>::operator= (T* const p) {
-	std::cout << "assign\n";
 	pObj = p;
 	rc = new RefCounter;	 
 	return *this;
