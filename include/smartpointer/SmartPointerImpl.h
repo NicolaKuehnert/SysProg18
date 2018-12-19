@@ -12,8 +12,8 @@ SmartPointer<T>::SmartPointer(T * const p) { // hier muss eigentlich ein default
 }
 template<class T>
 SmartPointer<T>::SmartPointer(const SmartPointer<T>&){
-	pObj = this->getObject();
-	rc = this->getRefCounter();
+	const T* pObj = this->getObject();
+	const RefCounter* rc = this->getRefCounter();
 }
 template<class T>
 SmartPointer<T>::~SmartPointer(){
@@ -21,11 +21,11 @@ SmartPointer<T>::~SmartPointer(){
 }
 template<class T>
 T* SmartPointer<T>::operator->() const { // irgendwie dereferenzieren...
-	return *pObj;
+	return pObj;
 }
 template<class T>
 T& SmartPointer<T>::operator*() const {
-	return &pObj;
+	//return &pObj;
 }
 template<class T>
 const T *SmartPointer<T>::getObject() const {
@@ -39,19 +39,20 @@ template<class T>
 const SmartPointer<T>& SmartPointer<T>::operator= (T* const p) {
 	pObj = p;
 	rc = new RefCounter;
+	
 }
 template<class T>
 const SmartPointer<T>& SmartPointer<T>::operator= (const SmartPointer&) {
-	pObj = getObject();
-	rc = getRefCounter();
+	const T* pObj = getObject();
+	const RefCounter* rc = getRefCounter();
 }
 template<class T>
 bool SmartPointer<T>::operator== (const SmartPointer& sp) const{
-	return sp->getObject() ==pObj;
+	return sp.getObject() ==pObj;
 }
 template<class T>
 bool SmartPointer<T>::operator!=(const SmartPointer& sp) const{
-	return sp->getObject() != pObj;
+	return sp.getObject() != pObj;
 }
 template<class T>
 SmartPointer<T>::operator bool () const{
