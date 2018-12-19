@@ -66,6 +66,13 @@ int main(){
 	return 0;
 }
 
+/**
+Funktion zum Registrieren eines Studenten in die Prüfungen
+@param Student* Ein Pointer auf einen Studenten
+@param int Die ID des Prüfungslots
+@return nr Die ID des Prüfungsslots
+@return -1 Fehler beim Eintragen
+*/
 int register_student(Student* s, int nr){
 	if(nr>=0||nr<10){
 		if(exams[nr]==NULL){
@@ -77,8 +84,14 @@ int register_student(Student* s, int nr){
 		return nr;
 	}
 	return -1;
-	}
-	
+}
+
+/**
+Funktion zum Löschen eines Studenten aus der Prüfungsliste
+@param Student* Ein Pointer auf den zu löschenden Studenten
+@return i Die ID des Prüfungslots
+@return -1 Fehler beim Löschen
+*/	
 int remove_student(Student* s){
 	int i=0;
 	for(i=0;i<10;i++){
@@ -88,8 +101,12 @@ int remove_student(Student* s){
 				}
 		}
 	return -1;
-	}
+}
 	
+/**
+Gibt den Durchschnitt der CPS aller Studenten zurück
+@return float Der Durchschnitt der CPS
+*/
 float calculate_avarage(void){
 	float av=0.0;
 	int ges=0;
@@ -104,9 +121,11 @@ float calculate_avarage(void){
 	av=ges/count;
 	
 	return av;
-	}
+}
 
-
+/**
+Initialisiert die Prüfungsliste
+*/
 void init(void){
 	int i=0;
 	while(i<10){

@@ -5,6 +5,12 @@ typedef enum degree_program{
 	IFM,ELM,Pflege
 }degree_program;
 
+/**
+Struct Student zum anlegen eines Studenten
+@param name Der Name des Studenten
+@param cps Die Creditpoints des Studenten
+@param enrolled Das Fach des Studenten
+*/
 typedef struct Student{
 	char name[NAME_LENGTH];
 	unsigned int cps;
@@ -17,6 +23,9 @@ typedef struct node{
 	struct node *prev;
 }node;
 
+/**
+
+*/
 node * get_ifm_students(node*);
 void show_all(node*);
 node * append_student(node*, Student*);
