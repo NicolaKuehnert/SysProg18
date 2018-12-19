@@ -3,34 +3,37 @@
 
 
 RefCounter::RefCounter(){
-	
+	this->n = 0;
 }
 
 void RefCounter::inc(){
-	RefCounter::n++;
+	this->n+= 1;
 }
 
 void RefCounter::dec(){
 	if(RefCounter::n >0){
-		RefCounter::n--;
+		this->n-=1;
 	}
 }
 
 
 bool RefCounter::isZero() const{
-	return RefCounter::n == 0;
+	return this->n == 0;
 }
 
 unsigned int RefCounter::getRefCount() const{
-	return RefCounter::n;
+	return this->n;
 }
 
 
 void test(){
 	RefCounter* t =new  RefCounter;
-	std::cout << std::to_string(t->getRefCount()) + "\n";
 	t->inc();
-	std::cout << std::to_string(t->getRefCount()) + "\n";
-	t->dec();
+	std::cout << std::to_string(t->getRefCount() == 1) + "\n";
+	t->inc();
+	std::cout << std::to_string(t->getRefCount() == 2) + "\n";
+	t->inc();
+	std::cout << std::to_string(t->getRefCount() == 3) + "\n";
+	t->inc();
 }
 

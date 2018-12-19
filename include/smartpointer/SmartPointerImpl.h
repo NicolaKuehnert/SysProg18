@@ -12,7 +12,11 @@ template<class T>
 SmartPointer<T>::SmartPointer(T * const p) {
 	std::cout << "create\n";
 	this->pObj = p;
-	this->rc = new RefCounter;
+	if(p != nullptr){
+		this->rc = new RefCounter;
+	} else {
+		this->rc = nullptr;
+	}	
 }
 template<class T>
 SmartPointer<T>::SmartPointer(const SmartPointer<T>& p){
