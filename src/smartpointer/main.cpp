@@ -25,6 +25,9 @@ int main(void) {
 	test();
 	Test t = Test("hallo");
 	SmartPointer<Test> s = SmartPointer<Test>(nullptr);
+	s.getObject();
+	
+	
 	std::cout << "weiter\n\n";
 	s = &t;
 	std::cout << "weiter2\n\n";
