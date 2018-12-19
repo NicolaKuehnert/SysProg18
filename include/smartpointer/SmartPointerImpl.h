@@ -9,7 +9,7 @@
 
 template<class T>
 
-SmartPointer<T>::SmartPointer(T * const p) { // hier muss eigentlich ein default parameter angegeben werden
+SmartPointer<T>::SmartPointer(T * const p) {
 	std::cout << "create\n";
 	this->pObj = p;
 	this->rc = new RefCounter;
@@ -54,7 +54,8 @@ template<class T>
 const SmartPointer<T>& SmartPointer<T>::operator= (T* const p) {
 	std::cout << "assign\n";
 	pObj = p;
-	rc = new RefCounter;	
+	rc = new RefCounter;	 
+	return *this;
 }
 template<class T>
 const SmartPointer<T>& SmartPointer<T>::operator= (const SmartPointer<T>& p) {

@@ -6,17 +6,17 @@
 
 class Test{
 	public:
-		Test(char* p = "") {
+		Test(std::string p = "") {
 			this->st = p;
 		}
-		char* getString(){
+		std::string getString(){
 			return this->st;
 		}
-		void setString(char* t) {
+		void setString(std::string t) {
 			this->st = t;
 		}
 	private:
-		char* st;
+		std::string st;
 };
 
 void test(void);
