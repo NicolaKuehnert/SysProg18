@@ -1,6 +1,9 @@
 #include <mutex>
 #include <iostream>
 
+/**
+This is an example class for RAII
+*/
 
 int count[2] ={0,1};
 int index = 0;
