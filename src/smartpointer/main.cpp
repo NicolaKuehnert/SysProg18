@@ -22,6 +22,23 @@ class Test{
 void test(void);
 
 int main(void) {
+	test();
+	Test t = Test("hallo");
+	SmartPointer<Test> s = SmartPointer<Test>(nullptr);
+	s.getObject();
 	
+	
+	std::cout << "weiter\n\n";
+	s = &t;
+	std::cout << "weiter2\n\n";
+
+	if(s == SmartPointer<Test>(nullptr)) {
+		std::cout << "null\n";
+	} else {
+		std::cout << "not null\n";
+	}
+	std::cout << "weiter3\n\n";
+	
+	//while(true);
 	return 0;
 }
