@@ -39,7 +39,7 @@ T& SmartPointer<T>::operator*() const {
 		throw NullPointerException();
 	}
 	this->rc->inc();
-	return &pObj;
+	return *pObj;
 }
 template<class T>
 const T *SmartPointer<T>::getObject() const {
@@ -59,8 +59,9 @@ const SmartPointer<T>& SmartPointer<T>::operator= (T* const p) {
 }
 template<class T>
 const SmartPointer<T>& SmartPointer<T>::operator= (const SmartPointer<T>& p) {
-	this->pObj = p.getObject();
-	this->rc = p.getRefCounter();
+	this->pObj = p.pObj;
+	this->rc = p.rc;
+	return *this;
 }
 template<class T>
 bool SmartPointer<T>::operator == (const SmartPointer& sp) const{
