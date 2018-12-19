@@ -3,6 +3,9 @@
 #include <experimental/propagate_const>
 
 //this would usually be in a header file
+/**
+This is an example parent class used to demonstrate PIMPL
+*/
 class widget{
 	public:
 		widget(int);
@@ -13,20 +16,25 @@ class widget{
 
 	private:
 		class impl;
-		std::experimental::propagate_const<std::unique_ptr<impl>> pImpl;		// pointer to impl class
+		///Pointer to impl class
+		std::experimental::propagate_const<std::unique_ptr<impl>> pImpl;
 };
 
+/**
+This class is a child class of widget
+It implements the out functions
+*/
 class widget::impl{
 	private:
 		int n;
 	public:
 		impl(int n) : n(n) {}
 		
-		//called functions thanks to pImpl
+		///Const output function called by pImpl.out()
 		void out() const {
 			std::cout << "Constant out\n";
 		}
-		
+		///Non-const function called by pImpl.out()
 		int out(){
 			std::cout << "Non-constant out\n";
 		}
