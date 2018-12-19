@@ -1,7 +1,11 @@
 #include <curl/curl.h>
 #include <string>
 
+/**
+@file curl_api.h Header für die curl-api Klasse
 
+Dies ist eine Klasse, die auf der API von CURL aufbaut und Daten abrufen kann.
+*/
 
 class curl_api{
 	public:
