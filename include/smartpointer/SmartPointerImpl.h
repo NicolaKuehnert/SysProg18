@@ -2,6 +2,7 @@
 #define SmartPointerImpl_H
 
 #include "smartpointer/RefCounter.h"
+#include "smartpointer/NullPointerException.h"
 #include <iostream>
 
 #include "smartpointer/SmartPointer.h"
@@ -25,15 +26,24 @@ SmartPointer<T>::~SmartPointer(){
 	deleteObject();
 }
 template<class T>
-T* SmartPointer<T>::operator->() const { // irgendwie dereferenzieren...
+T* SmartPointer<T>::operator->() const { 
+	if(pObj == nullptr){
+		throw NullPointerException();
+	}
+	this->rc->inc();
 	return pObj;
 }
 template<class T>
 T& SmartPointer<T>::operator*() const {
-	//return &pObj;
+	if(pObj == nullptr){
+		throw NullPointerException();
+	}
+	this->rc->inc();
+	return &pObj;
 }
 template<class T>
 const T *SmartPointer<T>::getObject() const {
+	this->rc->inc();
 	return pObj;
 }
 template<class T>
