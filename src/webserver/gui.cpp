@@ -98,7 +98,7 @@ int main(){
 		// Auswerten des Inputs
 		switch(ch){
 			// Spielfigur nach links drehen
-			case KEY_LEFT:
+			case 'a':
 				switch(curr_face){
 					case 0:
 						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(5));
@@ -114,26 +114,26 @@ int main(){
 						break;
 					case 2:
 						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(5));
-						mvwaddch(win, curr_x+1, curr_y, 'D' | COLOR_PAIR(5));
-						curr_x++;
+						mvwaddch(win, curr_x, curr_y+1, 'R' | COLOR_PAIR(5));
+						curr_y++;
 						curr_face = 3;
 						break;
 					case 3:
 						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(5));
-						mvwaddch(win, curr_x, curr_y+1, 'R' | COLOR_PAIR(5));
-						curr_y++;
+						mvwaddch(win, curr_x+1, curr_y, 'D' | COLOR_PAIR(5));
+						curr_x++;
 						curr_face = 0;
 						break;
 					}
 				break;
 			// Spielfigur nach rechts drehen
-			case KEY_RIGHT:
+			case 'd':
 				if(curr_face == 0){
 						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(6));
 						mvwaddch(win, curr_x, curr_y+1, 'R' | COLOR_PAIR(6));
 						curr_y++;
 						curr_face = 3;
-				}else if(curr_face == 1){
+				}else if(curr_face == 3){
 						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(6));
 						mvwaddch(win, curr_x-1, curr_y, 'U' | COLOR_PAIR(6));
 						curr_x--;
@@ -143,7 +143,7 @@ int main(){
 						mvwaddch(win, curr_x, curr_y-1, 'L' | COLOR_PAIR(6));
 						curr_y--;
 						curr_face = 1;
-				}else if(curr_face == 3){
+				}else if(curr_face == 1){
 						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(6));
 						mvwaddch(win, curr_x+1, curr_y, 'D' | COLOR_PAIR(6));
 						curr_x++;
