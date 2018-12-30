@@ -102,9 +102,9 @@ int main(){
 				switch(curr_face){
 					case 0:
 						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(5));
-						mvwaddch(win, curr_x, curr_y-1, 'L' | COLOR_PAIR(5));
+						mvwaddch(win, curr_x, curr_y-1, 'R' | COLOR_PAIR(5));
 						curr_y--;
-						curr_face = 1;
+						curr_face = 3;
 						break;
 					case 1:
 						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(5));
@@ -114,9 +114,9 @@ int main(){
 						break;
 					case 2:
 						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(5));
-						mvwaddch(win, curr_x, curr_y+1, 'R' | COLOR_PAIR(5));
+						mvwaddch(win, curr_x, curr_y+1, 'L' | COLOR_PAIR(5));
 						curr_y++;
-						curr_face = 3;
+						curr_face = 1;
 						break;
 					case 3:
 						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(5));
@@ -130,9 +130,9 @@ int main(){
 			case 'd':
 				if(curr_face == 0){
 						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(6));
-						mvwaddch(win, curr_x, curr_y+1, 'R' | COLOR_PAIR(6));
+						mvwaddch(win, curr_x, curr_y+1, 'L' | COLOR_PAIR(6));
 						curr_y++;
-						curr_face = 3;
+						curr_face = 1;
 				}else if(curr_face == 3){
 						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(6));
 						mvwaddch(win, curr_x-1, curr_y, 'U' | COLOR_PAIR(6));
@@ -140,9 +140,9 @@ int main(){
 						curr_face = 2;
 				}else if(curr_face == 2){
 						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(6));
-						mvwaddch(win, curr_x, curr_y-1, 'L' | COLOR_PAIR(6));
+						mvwaddch(win, curr_x, curr_y-1, 'R' | COLOR_PAIR(6));
 						curr_y--;
-						curr_face = 1;
+						curr_face = 3;
 				}else if(curr_face == 1){
 						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(6));
 						mvwaddch(win, curr_x+1, curr_y, 'D' | COLOR_PAIR(6));
@@ -164,8 +164,8 @@ int main(){
 						break;
 					case 1:
 						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(7));
-						mvwaddch(win, curr_x, curr_y-1, 'L' | COLOR_PAIR(7));
-						curr_y--;
+						mvwaddch(win, curr_x, curr_y+1, 'L' | COLOR_PAIR(7));
+						curr_y++;
 						break;
 					case 2:
 						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(7));
@@ -174,8 +174,8 @@ int main(){
 						break;
 					case 3:
 						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(7));
-						mvwaddch(win, curr_x, curr_y+1, 'R' | COLOR_PAIR(7));
-						curr_y++;
+						mvwaddch(win, curr_x, curr_y-1, 'R' | COLOR_PAIR(7));
+						curr_y--;
 						break;
 					}
 				break;
