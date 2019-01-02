@@ -1,7 +1,7 @@
 CFLAGS = -c -std=c++14 -Wall -pedantic -g
 LIB_PATH = ../../lib
 LIBS = -L$(LIB_PATH) -lledanzeige
-OFLAGS = -pthread -lcrypt -lm -lrt -lwiringPi 
+OFLAGS = -pthread -lcrypt -lm -lrt -lwiringPi -lncurses
 PROJECT = webserver
 INCLUDE_PATH = ../../include
 INCLUDE = -I$(INCLUDE_PATH) -I.

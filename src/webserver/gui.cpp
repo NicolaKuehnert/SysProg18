@@ -1,5 +1,5 @@
 #include <ncurses.h>
-#include "gui.h"
+#include "webserver/gui.h"
 #include <unistd.h>
 
 int init(){
