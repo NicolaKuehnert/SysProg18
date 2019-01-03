@@ -57,6 +57,15 @@ curl_api.o: $(CURL_C) $(CURL_H)
 ledanzeige: $(TM1637_C)
 	make -C ../../ install_ledanzeige
 	
+libtempSensor.so: $(TEMPERATUR_C) $(CALC_TEMP_C)
+	gcc -c -fpic $(TEMPERATUR_C) $(INCLUDE)
+	gcc -c -fpic $(CALC_TEMP_C) $(INCLUDE)
+	gcc -shared -o libtempSensor.so tempSensor.o calcTemp.o
+	
+install_tempSensor: libtempSensor.so
+	mkdir -p ../../lib/
+	cp libtempSensor.so ../../lib/
+	
 run: all
 	clear && ./$(PROJECT)
 

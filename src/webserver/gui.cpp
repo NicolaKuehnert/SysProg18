@@ -1,10 +1,25 @@
 #include <ncurses.h>
 #include "webserver/gui.h"
 #include <unistd.h>
+//#include <temperatur/tempSensor.h>
+#include <iostream>
+
+/**
+@param raw Roher Temperaturwert
+@return float Die aktuelle Temperatur
+*/
+float calculateTemperature(int raw){
+	float temp = ((float)raw * (3.3/1024) -0.5) * 100;
+	return temp;
+}
+
+//TempSensor sensor = TempSensor(calculateTemperature);
 
 int init(){
 	// muss aufgerufen werden, bevor ncurses genutzt werden kann
 	initscr();
+	
+	//std::cout << sensor.getTemp();
 	
 	// initialisiert die Farben
 	start_color();
@@ -42,7 +57,7 @@ int init(){
 	mvwaddch(win, 0, 3, ' '| COLOR_PAIR(2));
 	
 	// Schreibe alles, was im String Header steht
-	for(int i = 0; i < sizeof(header)-1; i++){
+	for(unsigned int i = 0; i < sizeof(header)-1; i++){
 		waddch(win, header[i] | COLOR_PAIR(2));
 	}
 	
@@ -62,7 +77,7 @@ int init(){
 	int count = 3;
 	
 	//Schreibe den Footer
-	for(int i = 0; i < sizeof(footer)-1; i++){
+	for(unsigned int i = 0; i < sizeof(footer)-1; i++){
 		// Nach einem Leerzeichen kommt eine neue Farbe
 		if(footer[i] == ' '){
 			waddch(win, footer[i] | COLOR_PAIR(2));
@@ -77,11 +92,14 @@ int init(){
 	
 	// Lade das Fenster neu, sodass der Text angezeigt wird
 	wrefresh(win);
+	return 0;
+	
 }
 
 /// Muss immer am Ende aufgerufen werden!
 int end(){
 	endwin();
+	return 0;
 }
 
 int main(){
