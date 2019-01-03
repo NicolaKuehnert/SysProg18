@@ -1,8 +1,12 @@
 #include <ncurses.h>
 #include "webserver/gui.h"
 #include <unistd.h>
-//#include <temperatur/tempSensor.h>
+#include <temperatur/tempSensor.h>
+#include <ledanzeige/TM1637.h>
+#include <ledanzeige/segmentanzeige.h>
 #include <iostream>
+#include <math.h>
+
 
 /**
 @param raw Roher Temperaturwert
@@ -13,13 +17,14 @@ float calculateTemperature(int raw){
 	return temp;
 }
 
-//TempSensor sensor = TempSensor(calculateTemperature);
+TempSensor sensor = TempSensor(calculateTemperature);
 
 int init(){
 	// muss aufgerufen werden, bevor ncurses genutzt werden kann
 	initscr();
 	
-	//std::cout << sensor.getTemp();
+	TM1637_setup();
+	
 	
 	// initialisiert die Farben
 	start_color();
@@ -103,6 +108,9 @@ int end(){
 }
 
 int main(){
+	
+	float geschwindigkeit = sensor.getTemp();
+	
 	init();
 	int running = 1;
 	
