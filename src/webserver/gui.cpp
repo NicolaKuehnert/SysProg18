@@ -109,7 +109,7 @@ int end(){
 
 int main(){
 	
-	float geschwindigkeit = sensor.getTemp();
+	float geschwindigkeit = sensor.getTemp() / 50;
 	
 	init();
 	int running = 1;
@@ -120,7 +120,7 @@ int main(){
 	
 	while(running){
 		int ch = wgetch(win);
-		sleep(1);
+		sleep(geschwindigkeit);
 		// Auswerten des Inputs
 		switch(ch){
 			// Spielfigur nach links drehen
@@ -141,7 +141,7 @@ int main(){
 					case 2:
 						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(5));
 						mvwaddch(win, curr_x, curr_y-1, 'L' | COLOR_PAIR(5));
-						curr_y++;
+						curr_y--;
 						curr_face = 3;
 						break;
 					case 3:
