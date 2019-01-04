@@ -7,6 +7,9 @@
 #include <iostream>
 #include <math.h>
 
+void move_forward(player * pl);
+
+void set_position(player *pl);
 
 /**
 @param raw Roher Temperaturwert
@@ -108,7 +111,10 @@ int end(){
 }
 
 int main(){
-	
+	player * one = new player;
+	one->curr_x = 2;
+	one->curr_y = 2;
+	one->curr_face = 0;
 	float geschwindigkeit = sensor.getTemp() / 50;
 	
 	init();
@@ -125,56 +131,42 @@ int main(){
 		switch(ch){
 			// Spielfigur nach links drehen
 			case 'a':
-				switch(curr_face){
+				switch(one->curr_face){
 					case 0:
-						mvwaddch(win, curr_x, curr_y, ACS_HLINE | COLOR_PAIR(5));
-						mvwaddch(win, curr_x, curr_y+1, 'R' | COLOR_PAIR(5));
-						curr_y++;
-						curr_face = 1;
+						one->curr_y++;
+						one->curr_face = 1;
 						break;
 					case 1:
-						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(5));
-						mvwaddch(win, curr_x-1, curr_y, 'U' | COLOR_PAIR(5));
-						curr_x--;
-						curr_face = 2;
+						one->curr_x--;
+						one->curr_face = 2;
 						break;
 					case 2:
-						mvwaddch(win, curr_x, curr_y, ACS_HLINE | COLOR_PAIR(5));
-						mvwaddch(win, curr_x, curr_y-1, 'L' | COLOR_PAIR(5));
-						curr_y--;
-						curr_face = 3;
+						one->curr_y--;
+						one->curr_face = 3;
 						break;
 					case 3:
-						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(5));
-						mvwaddch(win, curr_x+1, curr_y, 'D' | COLOR_PAIR(5));
-						curr_x++;
-						curr_face = 0;
+						one->curr_x++;
+						one->curr_face = 0;
 						break;
 					}
+					set_position(one);
 				break;
 			// Spielfigur nach rechts drehen
 			case 'd':
-				if(curr_face == 0){
-						mvwaddch(win, curr_x, curr_y, ACS_HLINE | COLOR_PAIR(6));
-						mvwaddch(win, curr_x, curr_y-1, 'L' | COLOR_PAIR(6));
-						curr_y--;
-						curr_face = 3;
-				}else if(curr_face == 3){
-						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(6));
-						mvwaddch(win, curr_x-1, curr_y, 'U' | COLOR_PAIR(6));
-						curr_x--;
-						curr_face = 2;
-				}else if(curr_face == 2){
-						mvwaddch(win, curr_x, curr_y, ACS_HLINE | COLOR_PAIR(6));
-						mvwaddch(win, curr_x, curr_y+1, 'R' | COLOR_PAIR(6));
-						curr_y++;
-						curr_face = 1;
-				}else if(curr_face == 1){
-						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(6));
-						mvwaddch(win, curr_x+1, curr_y, 'D' | COLOR_PAIR(6));
-						curr_x++;
-						curr_face = 0;
+				if(one->curr_face == 0){
+						one->curr_y--;
+						one->curr_face = 3;
+				}else if(one->curr_face == 3){
+						one->curr_x--;
+						one->curr_face = 2;
+				}else if(one->curr_face == 2){
+						one->curr_y++;
+						one->curr_face = 1;
+				}else if(one->curr_face == 1){
+						one->curr_x++;
+						one->curr_face = 0;
 				}
+				set_position(one);
 				break;
 			// Spiel beenden, wichtig: Shift + e drücken!
 			case 'E':
@@ -182,34 +174,39 @@ int main(){
 				break;
 			// Alle anderen Tasten sollen ignoriert werden
 			default:
-				switch(curr_face){
-					case 0:
-						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(7));
-						mvwaddch(win, curr_x+1, curr_y, 'D' | COLOR_PAIR(7));
-						curr_x++;
-						break;
-					case 1:
-						mvwaddch(win, curr_x, curr_y, ACS_HLINE | COLOR_PAIR(7));
-						mvwaddch(win, curr_x, curr_y+1, 'L' | COLOR_PAIR(7));
-						curr_y++;
-						break;
-					case 2:
-						mvwaddch(win, curr_x, curr_y, ACS_VLINE | COLOR_PAIR(7));
-						mvwaddch(win, curr_x-1, curr_y, 'U' | COLOR_PAIR(7));
-						curr_x--;
-						break;
-					case 3:
-						mvwaddch(win, curr_x, curr_y, ACS_HLINE | COLOR_PAIR(7));
-						mvwaddch(win, curr_x, curr_y-1, 'R' | COLOR_PAIR(7));
-						curr_y--;
-						break;
-					}
+				move_forward(one);
 				break;
 		}
-		wrefresh(win);
-		
-		
+		wrefresh(win);		
     }
     
 	endwin();
 }
+
+void move_forward(player * pl) {
+	switch(pl->curr_face){
+		case 0:
+			pl->curr_x++;
+			break;
+		case 1:
+			pl->curr_y++;
+			break;
+		case 2:
+			pl->curr_x--;
+			break;
+		case 3:
+			pl->curr_y--;
+			break;
+	}
+	set_position(pl);
+}
+
+void set_position(player * pl) {
+	if (pl->curr_face == 0 || pl->curr_face == 2) {
+		mvwaddch(win, pl->curr_x, pl->curr_y, ACS_VLINE | COLOR_PAIR(7));
+	} else if(pl->curr_face == 1 || pl->curr_face == 3) {
+		mvwaddch(win, pl->curr_x, pl->curr_y, ACS_HLINE | COLOR_PAIR(7));	
+	}
+	//mvwaddch(win, pl->curr_x, pl->curr_y, 'D' | COLOR_PAIR(7));
+}
+
