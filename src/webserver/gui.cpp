@@ -9,6 +9,10 @@
 
 void move_forward(player * pl);
 
+void move_left(player * pl);
+
+void move_right(player * pl);
+
 void set_position(player *pl);
 
 /**
@@ -131,42 +135,11 @@ int main(){
 		switch(ch){
 			// Spielfigur nach links drehen
 			case 'a':
-				switch(one->curr_face){
-					case 0:
-						one->curr_y++;
-						one->curr_face = 1;
-						break;
-					case 1:
-						one->curr_x--;
-						one->curr_face = 2;
-						break;
-					case 2:
-						one->curr_y--;
-						one->curr_face = 3;
-						break;
-					case 3:
-						one->curr_x++;
-						one->curr_face = 0;
-						break;
-					}
-					set_position(one);
+				move_left(one);
 				break;
 			// Spielfigur nach rechts drehen
 			case 'd':
-				if(one->curr_face == 0){
-						one->curr_y--;
-						one->curr_face = 3;
-				}else if(one->curr_face == 3){
-						one->curr_x--;
-						one->curr_face = 2;
-				}else if(one->curr_face == 2){
-						one->curr_y++;
-						one->curr_face = 1;
-				}else if(one->curr_face == 1){
-						one->curr_x++;
-						one->curr_face = 0;
-				}
-				set_position(one);
+				move_right(one);
 				break;
 			// Spiel beenden, wichtig: Shift + e drücken!
 			case 'E':
@@ -181,6 +154,45 @@ int main(){
     }
     
 	endwin();
+}
+
+void move_left(player * pl) {
+	switch(pl->curr_face){
+		case 0:
+			pl->curr_y++;
+			pl->curr_face = 1;
+			break;
+		case 1:
+			pl->curr_x--;
+			pl->curr_face = 2;
+			break;
+		case 2:
+			pl->curr_y--;
+			pl->curr_face = 3;
+			break;
+		case 3:
+			pl->curr_x++;
+			pl->curr_face = 0;
+			break;
+		}
+	set_position(pl);
+}
+
+void move_right(player * pl) {
+	if(pl->curr_face == 0){
+			pl->curr_y--;
+			pl->curr_face = 3;
+	}else if(pl->curr_face == 3){
+			pl->curr_x--;
+			pl->curr_face = 2;
+	}else if(pl->curr_face == 2){
+			pl->curr_y++;
+			pl->curr_face = 1;
+	}else if(pl->curr_face == 1){
+			pl->curr_x++;
+			pl->curr_face = 0;
+	}
+	set_position(pl);
 }
 
 void move_forward(player * pl) {
