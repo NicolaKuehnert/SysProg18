@@ -10,15 +10,25 @@ INCLUDE = -I$(INCLUDE_PATH) -I.
 GUI_C = gui.cpp
 GUI_h = $(INCLUDE_PATH)/$(PROJECT)/gui.h
 
+SERVER_C = server.cpp
+SERVER_H = $(INCLUDE_PATH)/$(PROJECT)/server.h
+
+MAIN_C = main.cpp
 
 
 all: $(PROJECT) 
 
-$(PROJECT): tempSensor.so ledanzeige.so gui.o
-	g++ -o $(PROJECT) gui.o $(OFLAGS)
+$(PROJECT): tempSensor.so ledanzeige.so server.o gui.o main.o
+	g++ -o $(PROJECT) main.o gui.o server.o $(OFLAGS)
 	
+main.o: $(MAIN_C)
+	g++ $(CFLAGS) $(INLCUDE) $(MAIN_C)
+
 gui.o: $(GUI_C) $(GUI_H)
 	g++ $(CFLAGS) $(INCLUDE) $(GUI_C)
+	
+server.o: $(SERVER_C) $(SERVER_H)
+	g++ $(CFLAGS) $(INCLUDE) $(SERVER_C)
 	
 tempSensor.so:
 	make -C ../temperatur install_tempSensor

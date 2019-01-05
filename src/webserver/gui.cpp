@@ -7,14 +7,6 @@
 #include <iostream>
 #include <math.h>
 
-void move_forward(player * pl);
-
-void move_left(player * pl);
-
-void move_right(player * pl);
-
-void set_position(player *pl);
-
 /**
 @param raw Roher Temperaturwert
 @return float Die aktuelle Temperatur
@@ -114,7 +106,7 @@ int end(){
 	return 0;
 }
 
-int main(){
+int move(){
 	player * one = new player;
 	one->curr_x = 2;
 	one->curr_y = 2;
