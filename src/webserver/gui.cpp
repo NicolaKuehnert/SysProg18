@@ -1,4 +1,3 @@
-#include <ncurses.h>
 #include "webserver/gui.h"
 #include <unistd.h>
 #include <temperatur/tempSensor.h>
@@ -6,6 +5,8 @@
 #include <ledanzeige/segmentanzeige.h>
 #include <iostream>
 #include <math.h>
+
+WINDOW * win;
 
 /**
 @param raw Roher Temperaturwert
@@ -110,15 +111,11 @@ int move(){
 	player * one = new player;
 	one->curr_x = 2;
 	one->curr_y = 2;
-	one->curr_face = 0;
+	one->curr_face = 0;  // 0 down, 1 left, 2 up, 3 right
 	float geschwindigkeit = sensor.getTemp() / 50;
 	
 	init();
 	int running = 1;
-	
-	int curr_x = 2;
-	int curr_y = 2;
-	int curr_face = 0; // 0 down, 1 left, 2 up, 3 right
 	
 	while(running){
 		int ch = wgetch(win);
@@ -146,6 +143,7 @@ int move(){
     }
     
 	endwin();
+	return 0;
 }
 
 void move_left(player * pl) {

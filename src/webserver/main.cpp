@@ -3,6 +3,6 @@
 
 
 int main() {
-	move();
+	//move();
 	init_server();
 }

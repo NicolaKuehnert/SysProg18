@@ -2,11 +2,11 @@
 #define SERVER_H
 
 #define LISTEN_BACKLOG 50
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
-typedef struct sockaddr_un { 
-    sa_family_t sun_family; 
-    char        sun_path[14]; 
-} sockaddr_un;
+
 
 void init_server();
 
