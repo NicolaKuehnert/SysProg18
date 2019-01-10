@@ -4,11 +4,12 @@
 #include <iostream>
 #include "webserver/server.h"
 
-
+int s;
+struct sockaddr_in my_addr;
 
 void init_server() {
 	
-	struct sockaddr_in my_addr, peer_addr;
+	struct sockaddr_in peer_addr;
 	socklen_t peer_addr_size;
 	
 	memset(&my_addr, 0, sizeof(struct sockaddr_in)); 
@@ -18,7 +19,7 @@ void init_server() {
 	
 	
 	
-	int s = socket(AF_INET, SOCK_STREAM, 0);
+	s = socket(AF_INET, SOCK_STREAM, 0);
 	if (s != -1) {
 		int b = bind(s, (struct sockaddr *) &my_addr,sizeof(struct sockaddr_in));
 		if(b != -1) {
@@ -47,5 +48,10 @@ void init_server() {
 		std::cout << "FAIL socket\n";
 		std::cout << std::to_string(s) + "\n";
 	}
+}
+
+
+int main() {
+	init_server();
 }
 

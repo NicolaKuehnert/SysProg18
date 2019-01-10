@@ -13,22 +13,31 @@ GUI_H = $(INCLUDE_PATH)/$(PROJECT)/gui.h
 SERVER_C = server.cpp
 SERVER_H = $(INCLUDE_PATH)/$(PROJECT)/server.h
 
+CLIENT_C = client.cpp
+CLIENT_H = $(INCLUDE_PATH)/$(PROJECT)/client.h
+
 MAIN_C = main.cpp
 
 
 all: $(PROJECT) 
 
-$(PROJECT): tempSensor.so ledanzeige.so server.o gui.o main.o
-	g++ -o $(PROJECT) main.o gui.o server.o $(OFLAGS)
+$(PROJECT): tempSensor.so ledanzeige.so client.o gui.o main.o
+	g++ -o $(PROJECT) main.o gui.o client.o $(OFLAGS)
 	
-main.o: $(MAIN_C) $(GUI_H) $(SERVER_H)
+main.o: $(MAIN_C) $(GUI_H) $(SERVER_H) $()
 	g++ $(CFLAGS) $(INCLUDE) $(MAIN_C)
+	
+server: server.o
+	g++ -o server server.o $(OFLAGS)
 
 gui.o: $(GUI_C) $(GUI_H)
 	g++ $(CFLAGS) $(INCLUDE) $(GUI_C)
 	
 server.o: $(SERVER_C) $(SERVER_H)
 	g++ $(CFLAGS) $(INCLUDE) $(SERVER_C)
+	
+client.o: $(CLIENT_C) $(CLIENT_H)
+	g++ $(CFLAGS) $(INCLUDE) $(CLIENT_C)
 	
 tempSensor.so:
 	make -C ../temperatur install_tempSensor
@@ -39,6 +48,9 @@ ledanzeige.so:
 	
 run: all
 	clear && ./$(PROJECT)
+	
+run-server: server
+	clear && ./server
 
 test: all
 	make -C ../../tests/$(PROJECT)
