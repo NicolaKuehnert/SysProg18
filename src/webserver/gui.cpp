@@ -1,30 +1,17 @@
 #include "webserver/gui.h"
 #include <unistd.h>
-#include <temperatur/tempSensor.h>
-#include <ledanzeige/TM1637.h>
-#include <ledanzeige/segmentanzeige.h>
 #include <iostream>
 #include <math.h>
+#include "webserver/client.h"
 
 WINDOW * win;
+int player_id = 0;
 
-/**
-@param raw Roher Temperaturwert
-@return float Die aktuelle Temperatur
-*/
-float calculateTemperature(int raw){
-	float temp = ((float)raw * (3.3/1024) -0.5) * 100;
-	return temp;
-}
-
-TempSensor sensor = TempSensor(calculateTemperature);
 
 int init(){
 	// muss aufgerufen werden, bevor ncurses genutzt werden kann
 	initscr();
-	
-	TM1637_setup();
-	
+	init_client(); // noch testen ob player_id > 0 ist !!!!!!!!!!!
 	
 	// initialisiert die Farben
 	start_color();
@@ -107,28 +94,24 @@ int end(){
 	return 0;
 }
 
-int move(){
-	player * one = new player;
-	one->curr_x = 2;
-	one->curr_y = 2;
-	one->curr_face = 0;  // 0 down, 1 left, 2 up, 3 right
-	float geschwindigkeit = sensor.getTemp() / 50;
-	
+int move()
+{
 	init();
-	int running = 1;
+	int running = 1,x, y, direction;
+	
 	
 	while(running){
 		int ch = wgetch(win);
-		sleep(geschwindigkeit);
+		sleep(1);
 		// Auswerten des Inputs
 		switch(ch){
 			// Spielfigur nach links drehen
 			case 'a':
-				move_left(one);
+				send_move("l");
 				break;
 			// Spielfigur nach rechts drehen
 			case 'd':
-				move_right(one);
+				send_move("r");
 				break;
 			// Spiel beenden, wichtig: Shift + e drücken!
 			case 'E':
@@ -136,79 +119,28 @@ int move(){
 				break;
 			// Alle anderen Tasten sollen ignoriert werden
 			default:
-				move_forward(one);
+				send_move("f");
 				break;
 		}
 		wrefresh(win);		
     }
-    
 	endwin();
 	return 0;
 }
 
-void move_left(player * pl) {
-	switch(pl->curr_face){
-		case 0:
-			pl->curr_y++;
-			pl->curr_face = 1;
-			break;
-		case 1:
-			pl->curr_x--;
-			pl->curr_face = 2;
-			break;
-		case 2:
-			pl->curr_y--;
-			pl->curr_face = 3;
-			break;
-		case 3:
-			pl->curr_x++;
-			pl->curr_face = 0;
-			break;
-		}
-	set_position(pl);
+void set_position(int x, int y, int direction) {
+	if (direction == 0 || direction == 2) {
+		mvwaddch(win, x, y, ACS_VLINE | COLOR_PAIR(7));
+	} else if(direction == 1 || direction == 3) {
+		mvwaddch(win, x, y, ACS_HLINE | COLOR_PAIR(7));	
+	}
 }
 
-void move_right(player * pl) {
-	if(pl->curr_face == 0){
-			pl->curr_y--;
-			pl->curr_face = 3;
-	}else if(pl->curr_face == 3){
-			pl->curr_x--;
-			pl->curr_face = 2;
-	}else if(pl->curr_face == 2){
-			pl->curr_y++;
-			pl->curr_face = 1;
-	}else if(pl->curr_face == 1){
-			pl->curr_x++;
-			pl->curr_face = 0;
-	}
-	set_position(pl);
-}
-
-void move_forward(player * pl) {
-	switch(pl->curr_face){
-		case 0:
-			pl->curr_x++;
-			break;
-		case 1:
-			pl->curr_y++;
-			break;
-		case 2:
-			pl->curr_x--;
-			break;
-		case 3:
-			pl->curr_y--;
-			break;
-	}
-	set_position(pl);
-}
-
-void set_position(player * pl) {
-	if (pl->curr_face == 0 || pl->curr_face == 2) {
-		mvwaddch(win, pl->curr_x, pl->curr_y, ACS_VLINE | COLOR_PAIR(7));
-	} else if(pl->curr_face == 1 || pl->curr_face == 3) {
-		mvwaddch(win, pl->curr_x, pl->curr_y, ACS_HLINE | COLOR_PAIR(7));	
-	}
-	//mvwaddch(win, pl->curr_x, pl->curr_y, 'D' | COLOR_PAIR(7));
+void send_move(char *direction)
+{
+	send_to_server(direction);
+	char * result = receive_from_server();
+	// ergebnis muss noch ausgelesen werden.....
+	// dann set_position(x, y, direction);
 }
 

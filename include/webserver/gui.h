@@ -3,24 +3,14 @@
 #include <ncurses.h>
 
 
-typedef struct player {
-	int curr_face, curr_x, curr_y;
-	int points;
-	int socket;
-}player;
-
 int move();
 
 int init();
 
-void move_forward(player * pl);
-
-void move_left(player * pl);
-
-void move_right(player * pl);
-
-void set_position(player *pl);
+void set_position(int x, int y, int direction);
 
 int end();
+
+void send_move(char *direction);
 
 #endif

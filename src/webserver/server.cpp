@@ -49,6 +49,7 @@ char *receive_from_client() {
 	}
 }
 
+
 void send_to_client(int c_socket,char* content) 
 {
 	send(c_socket, content , strlen(content), 0 ); 
