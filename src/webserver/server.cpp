@@ -13,7 +13,8 @@ void init_server() {
 	
 	memset(&my_addr, 0, sizeof(struct sockaddr_in)); 
     my_addr.sin_family = AF_INET; 
-    strncpy(my_addr.sin_addr.s_addr, "192.168.178.31", sizeof("192.168.178.31") - 1);
+    my_addr.sin_addr.s_addr = INADDR_ANY;
+    my_addr.sin_port = htons( PORT );
 	
 	
 	
@@ -22,11 +23,21 @@ void init_server() {
 		int b = bind(s, (struct sockaddr *) &my_addr,sizeof(struct sockaddr_in));
 		if(b != -1) {
 			int l = listen(s, LISTEN_BACKLOG);
-			std::cout << std::to_string(l) + "\n";
+			std::cout << std::to_string(l) + "listen\n";
 			
 			peer_addr_size = sizeof(struct sockaddr_in);
-			int a = accept(s, (struct sockaddr *) &peer_addr, &peer_addr_size);
-			std::cout << std::to_string(a) + "\n";
+			int new_socket;
+			if ((new_socket = accept(s, (struct sockaddr *)&my_addr, (socklen_t*)&peer_addr_size))>=0) 
+			{ 
+				char buffer[1024] = {0}; 
+				char *hello = "Hello from server"; 
+				int valread = read( new_socket , buffer, 1024); 
+				printf("%s\n",buffer ); 
+				send(new_socket , hello , strlen(hello) , 0 ); 
+			} 
+			else {
+				std::cout << "Fail accept\n";
+			}
 		} else {
 			std::cout << "FAIL bind\n";
 			std::cout << std::to_string(b) + "\n";
