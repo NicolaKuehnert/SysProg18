@@ -56,4 +56,4 @@ test: all
 	make -C ../../tests/$(PROJECT)
 
 clean: 
-	rm *.o $(PROJECT)
+	rm *.o $(PROJECT) server

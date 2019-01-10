@@ -9,17 +9,13 @@ struct sockaddr_in my_addr;
 struct sockaddr_in peer_addr;
 socklen_t peer_addr_size;
 
-void init_server() {
-	
-	
-	
+void init_server() 
+{
 	memset(&my_addr, 0, sizeof(struct sockaddr_in)); 
     my_addr.sin_family = AF_INET; 
     my_addr.sin_addr.s_addr = INADDR_ANY;
     my_addr.sin_port = htons( PORT );
     peer_addr_size = sizeof(struct sockaddr_in);
-	
-	
 	
 	s = socket(AF_INET, SOCK_STREAM, 0);
 	if (s != -1) {
@@ -37,30 +33,33 @@ void init_server() {
 	}
 }
 
-int receive() {
-	int new_socket, valread;
+char *receive_from_client() {
+	int new_socket;
 	char buffer[1024] = {0}; 
-	char *hello = "Hello from server"; 
 	
 	if ((new_socket = accept(s, (struct sockaddr *)&my_addr, (socklen_t*)&peer_addr_size))>=0) 
 	{ 
-		std::cout << std::to_string(new_socket) + "\n";
-		valread = read(new_socket, buffer, 1024); 
-		std::cout << std::to_string(valread) + "hallo\n";
-		send(new_socket , hello , strlen(hello) , 0 ); 
-		std::cout << "end";
+		read(new_socket, buffer, 1024); 
+		std::cout << buffer;
+		std::cout << "\n";
+		return buffer;
 	} 
 	else {
-		std::cout << "Fail accept\n";
+		std::cout << "Fail receive\n";
 	}
 }
+
+void send_to_client(int c_socket,char* content) 
+{
+	send(c_socket, content , strlen(content), 0 ); 
+}
+
+
 
 
 int main() {
 	init_server();
-	while(true)
-	{
-		receive();
-	}
+	receive_from_client();
+	return 0;
 }
 

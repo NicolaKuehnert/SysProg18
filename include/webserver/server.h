@@ -9,5 +9,7 @@
 
 
 void init_server();
+char *receive_from_client();
+void send_to_client(char *content);
 
 #endif

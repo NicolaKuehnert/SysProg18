@@ -7,6 +7,8 @@
 #define PORT 8080
 
 void init_client();
+char *receive_server();
+void send_to_server(char *content);
 
 
 #endif
