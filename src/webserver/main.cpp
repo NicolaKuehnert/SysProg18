@@ -5,7 +5,7 @@
 
 
 int main() {
-	//move();
+	move();
 	init_client();
 	send_to_server("Hallo");
 	std::cout << receive_server();

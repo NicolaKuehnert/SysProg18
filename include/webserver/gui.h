@@ -6,6 +6,7 @@
 typedef struct player {
 	int curr_face, curr_x, curr_y;
 	int points;
+	int socket;
 }player;
 
 int move();
