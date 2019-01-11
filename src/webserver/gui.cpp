@@ -11,8 +11,9 @@ int player_id = 0;
 int init(){
 	// muss aufgerufen werden, bevor ncurses genutzt werden kann
 	initscr();
-	init_client(); // noch testen ob player_id > 0 ist !!!!!!!!!!!
-	
+	std::cout << "get id" << std::endl;
+	player_id = init_client(); // noch testen ob player_id > 0 ist !!!!!!!!!!!
+	std::cout << "got id" << std::endl;
 	// initialisiert die Farben
 	start_color();
 	// kein Enter benötigt, Tastendrücken wird sofort weitergegeben
@@ -99,7 +100,6 @@ int move()
 	init();
 	int running = 1,x, y, direction;
 	
-	
 	while(running){
 		int ch = wgetch(win);
 		sleep(1);
@@ -138,8 +138,8 @@ void set_position(int x, int y, int direction) {
 
 void send_move(char *direction)
 {
-	send_to_server(direction);
-	char * result = receive_from_server();
+	//send_to_server(direction);
+	//char * result = receive_from_server();
 	// ergebnis muss noch ausgelesen werden.....
 	// dann set_position(x, y, direction);
 }

@@ -4,7 +4,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#define PORT 8080
+#define PORT 8081
 
 int init_client();
 char *receive_from_server();

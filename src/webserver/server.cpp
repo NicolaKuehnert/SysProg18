@@ -8,6 +8,7 @@ int s;
 struct sockaddr_in my_addr;
 struct sockaddr_in peer_addr;
 socklen_t peer_addr_size;
+int player_id;
 
 void init_server() 
 {
@@ -40,17 +41,41 @@ char *receive_from_client() {
 	if ((new_socket = accept(s, (struct sockaddr *)&my_addr, (socklen_t*)&peer_addr_size))>=0) 
 	{ 
 		read(new_socket, buffer, 1024); 
-		std::cout << buffer;
-		std::cout << "\n";
-		return buffer;
+		std::cout << buffer << std::endl;
+		player_id = new_socket;
+		char *b = buffer;
+		return b;
 	} 
 	else {
 		std::cout << "Fail receive\n";
 	}
+	return nullptr;
 }
 
 
-void send_to_client(int c_socket,char* content) 
+void handle_method(const char *command)
+{
+	if(strcmp(command, "new")==0)
+	{
+		std::cout << "new client" <<std::endl;
+		send_to_client(player_id, std::to_string(player_id).c_str());
+	}
+	else if (strcmp(command, "l")==0)
+	{
+		
+	}
+	else if (strcmp(command, "r")==0)
+	{
+		
+	}
+	else if (strcmp(command, "f")==0)
+	{
+		
+	}
+}
+
+
+void send_to_client(int c_socket,const char* content) 
 {
 	send(c_socket, content , strlen(content), 0 ); 
 }
@@ -60,7 +85,11 @@ void send_to_client(int c_socket,char* content)
 
 int main() {
 	init_server();
-	receive_from_client();
+	while (true)
+	{
+		handle_method(receive_from_client());
+	}
+	//close(s);
 	return 0;
 }
 

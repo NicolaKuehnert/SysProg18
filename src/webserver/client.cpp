@@ -27,15 +27,21 @@ int init_client()
 			std::cout << "Connection Failed\n"; 
 			return -1; 
 		} 
+		
 		send_to_server("new");
+		
 		char* player_id = receive_from_server();
-		return std::stoi(player_id);
+		char *end;
+		int value = std::strtol(player_id, &end, 10);
+		return value;
     } 
     else {
 		std::cout << "Invalid Adress\n";
 	}
 	return -1;
 }
+
+
 
 void send_to_server(char *content)
 {
@@ -46,7 +52,6 @@ char *receive_from_server()
 {
 	char buffer[1024] = {0}; 
 	read(sock, buffer, 1024); 
-	std::cout << buffer;
-	std::cout << "\n";
+	std::cout << buffer << std::endl;
 	return buffer;
 }
