@@ -19,7 +19,7 @@ CLIENT_H = $(INCLUDE_PATH)/$(PROJECT)/client.h
 MAIN_C = main.cpp
 
 
-all: $(PROJECT) 
+all: $(PROJECT) server
 
 $(PROJECT): tempSensor.so ledanzeige.so client.o gui.o main.o
 	g++ -o $(PROJECT) main.o gui.o client.o $(OFLAGS)
