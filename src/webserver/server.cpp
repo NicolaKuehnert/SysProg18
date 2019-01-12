@@ -13,9 +13,9 @@ int player_id;
 
 void init_server() 
 {
-	openlog("TronServer",LOG_USER | LOG_INFO | LOG_PID);
+	//openlog("TronServer",LOG_USER | LOG_INFO | LOG_PID);
 
-	syslog("Server starting");
+	//syslog("Server starting");
 	memset(&my_addr, 0, sizeof(struct sockaddr_in)); 
     my_addr.sin_family = AF_INET; 
     my_addr.sin_addr.s_addr = INADDR_ANY;
@@ -27,15 +27,15 @@ void init_server()
 		int b = bind(s, (struct sockaddr *) &my_addr,sizeof(struct sockaddr_in));
 		if(b != -1) {
 			int l = listen(s, LISTEN_BACKLOG);
-			syslog("Server started");
+			//syslog("Server started");
 			std::cout << "Server running.\n";
 		} else {
-			syslog("Server crashed - failed binding");
+			//syslog("Server crashed - failed binding");
 			std::cout << "FAIL bind\n";
 			std::cout << std::to_string(b) + "\n";
 		}
 	} else {
-		syslog("Server did not start - socket fail");
+		//syslog("Server did not start - socket fail");
 		std::cout << "FAIL socket\n";
 		std::cout << std::to_string(s) + "\n";
 	}
@@ -51,12 +51,12 @@ char *receive_from_client() {
 		std::cout << buffer << std::endl;
 		player_id = new_socket;
 		char *b = buffer;
-		syslog("Client transmission recieved");
+		//syslog("Client transmission recieved");
 		return b;
 	} 
 	else {
 		std::cout << "Fail receive\n";
-		syslog("Client transmission failed to recieve");
+		//syslog("Client transmission failed to recieve");
 	}
 	return nullptr;
 }
@@ -66,18 +66,18 @@ void handle_method(const char *command)
 {
 	if(strcmp(command, "new")==0)
 	{
-		syslog("New Client connected");
+		//syslog("New Client connected");
 		std::cout << "new client" <<std::endl;
 		send_to_client(player_id, std::to_string(player_id).c_str());
-		syslog("New Client connected: %i", player_id);
+		//syslog("New Client connected: %i", player_id);
 	}
 	else if (strcmp(command, "l")==0)
 	{
-		syslog("Client transmission -- turn left");
+		//syslog("Client transmission -- turn left");
 	}
 	else if (strcmp(command, "r")==0)
 	{
-		syslog("Client transmission -- turn right");
+		//syslog("Client transmission -- turn right");
 	}
 	else if (strcmp(command, "f")==0)
 	{
@@ -103,7 +103,7 @@ int main() {
 		handle_method(receive_from_client());
 	}
 	//close(s);
-	syslog("Server closing...");
+	//syslog("Server closing...");
 	return 0;
 }
 
