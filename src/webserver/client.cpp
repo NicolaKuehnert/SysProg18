@@ -33,13 +33,14 @@ int init_client()
 		send_to_server("new");
 		
 		char* player_id = receive_from_server();
+		std::cout << player_id << std::endl;
+		std::cout << "Hallo" << std::endl;
 		char *end;
-		int value = std::strtol(player_id, &end, 10);
+		int value = atoi(player_id);
+		//init();
+		//handle_method(get_key);
 		
-		init();
-		handle_method(get_key);
-		
-		return value;
+		return 0;
     } 
     else {
 		std::cout << "Invalid Adress\n";
@@ -65,8 +66,14 @@ void send_to_server(char *content)
 
 char *receive_from_server()
 {
-	char buffer[1024] = {0}; 
-	read(sock, buffer, 1024); 
+	int len = 1024;
+	char buffer[len] = {0}; 
+	read(sock, buffer, len); 
 	std::cout << buffer << std::endl;
-	return buffer;
+	
+	char* s = new char[len + 1];
+	
+	strncpy(s, (char*)buffer, len);
+    s[len] = '\0';
+	return s;
 }

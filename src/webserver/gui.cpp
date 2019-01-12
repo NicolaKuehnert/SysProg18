@@ -12,7 +12,7 @@ int init(){
 	// muss aufgerufen werden, bevor ncurses genutzt werden kann
 	initscr();
 	std::cout << "get id" << std::endl;
-	player_id = init_client(); // noch testen ob player_id > 0 ist !!!!!!!!!!!
+	//player_id = init_client(); // noch testen ob player_id > 0 ist !!!!!!!!!!!
 	std::cout << "got id" << std::endl;
 	// initialisiert die Farben
 	start_color();
