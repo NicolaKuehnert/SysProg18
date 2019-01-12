@@ -32,13 +32,11 @@ int init_client()
 		
 		send_to_server("new");
 		
-		char* player_id = receive_from_server();
-		std::cout << player_id << std::endl;
-		std::cout << "Hallo" << std::endl;
+		char* id = receive_from_server();
 		char *end;
-		int value = atoi(player_id);
-		//init();
-		//handle_method(get_key);
+		set_player_id(atoi(id));
+		init();
+		handle_method(get_key);
 		
 		return 0;
     } 
@@ -50,7 +48,6 @@ int init_client()
 
 void handle_method(int (*get_key)())
 {
-	std::cout << "while true" << std::endl;
 	int running = 1;
 	while (true)
 	{

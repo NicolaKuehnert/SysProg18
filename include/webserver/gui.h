@@ -15,4 +15,6 @@ void send_move(char *direction);
 
 int get_key();
 
+void set_player_id(int id);
+
 #endif
