@@ -97,8 +97,7 @@ int end(){
 
 int move()
 {
-	init();
-	int running = 1,x, y, direction;
+	/*int running = 1;
 	
 	while(running){
 		int ch = wgetch(win);
@@ -125,7 +124,34 @@ int move()
 		wrefresh(win);		
     }
 	endwin();
-	return 0;
+	return 0;*/
+}
+
+int get_key()
+{
+	int ch = wgetch(win);
+	sleep(1);
+	// Auswerten des Inputs
+	switch(ch){
+		// Spielfigur nach links drehen
+		case 'a':
+			send_move("l");
+			break;
+		// Spielfigur nach rechts drehen
+		case 'd':
+			send_move("r");
+			break;
+		// Spiel beenden, wichtig: Shift + e drücken!
+		case 'E':
+			return 0;
+			break;
+		// Alle anderen Tasten sollen ignoriert werden
+		default:
+			send_move("f");
+			break;
+	}
+	wrefresh(win);
+	return 1;
 }
 
 void set_position(int x, int y, int direction) {

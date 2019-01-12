@@ -13,4 +13,6 @@ int end();
 
 void send_move(char *direction);
 
+int get_key();
+
 #endif

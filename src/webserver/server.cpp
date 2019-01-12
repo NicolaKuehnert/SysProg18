@@ -23,7 +23,7 @@ void init_server()
 		int b = bind(s, (struct sockaddr *) &my_addr,sizeof(struct sockaddr_in));
 		if(b != -1) {
 			int l = listen(s, LISTEN_BACKLOG);
-			std::cout << std::to_string(l) + "listen\n";
+			std::cout << "Server running.\n";
 		} else {
 			std::cout << "FAIL bind\n";
 			std::cout << std::to_string(b) + "\n";

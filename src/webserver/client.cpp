@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <iostream>
+#include "webserver/gui.h"
+
 struct sockaddr_in address; 
 int sock = 0; 
 struct sockaddr_in serv_addr; 
@@ -33,6 +35,10 @@ int init_client()
 		char* player_id = receive_from_server();
 		char *end;
 		int value = std::strtol(player_id, &end, 10);
+		
+		init();
+		handle_method(get_key);
+		
 		return value;
     } 
     else {
@@ -41,7 +47,16 @@ int init_client()
 	return -1;
 }
 
-
+void handle_method(int (*get_key)())
+{
+	std::cout << "while true" << std::endl;
+	int running = 1;
+	while (true)
+	{
+		char * input = receive_from_server();
+		running = (get_key)();
+	}
+}
 
 void send_to_server(char *content)
 {
