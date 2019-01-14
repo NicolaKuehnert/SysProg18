@@ -9,9 +9,10 @@ int s;
 struct sockaddr_in my_addr;
 struct sockaddr_in peer_addr;
 socklen_t peer_addr_size;
-int player_id;
+static player *player_list[10];
+static int player_count = 0;
 
-void init_server() 
+int init_server() 
 {
 	openlog("TronServer",LOG_INFO | LOG_PID, LOG_USER);
 
@@ -29,15 +30,18 @@ void init_server()
 			int l = listen(s, LISTEN_BACKLOG);
 			syslog(LOG_INFO, "Server started");
 			std::cout << "Server running.\n";
+			return 0;
 		} else {
 			syslog(LOG_ERR, "Server crashed - failed binding");
 			std::cout << "FAIL bind\n";
 			std::cout << std::to_string(b) + "\n";
+			return -1;
 		}
 	} else {
 		syslog(LOG_ERR, "Server did not start - socket fail");
 		std::cout << "FAIL socket\n";
 		std::cout << std::to_string(s) + "\n";
+		return -1;
 	}
 }
 
@@ -49,11 +53,9 @@ message *receive_from_client() {
 	{ 
 		read(new_socket, buffer, 1024); 
 		std::cout << buffer << std::endl;
-		//player_id = new_socket;
-		//char *b = buffer;
-		message * m = new message;
+		message * m= new message;
 		m->content = buffer;
-		m->socket_id = new_socket;
+		m->player_id = new_socket;
 		syslog(LOG_INFO, "Client transmission recieved");
 		return m;
 	} 
@@ -67,25 +69,38 @@ message *receive_from_client() {
 
 void handle_method()
 {
+	sleep(1);
+	send_to_all_clients("status");
+	std::cout << "waitung" << std::endl;
 	message *command = receive_from_client();
 	if(strcmp(command->content, "new")==0)
 	{
 		//syslog("New Client connected");
 		std::cout << "new client" <<std::endl;
-		send_to_client(command->socket_id, std::to_string(command->socket_id).c_str());
-		syslog(LOG_INFO, "New Client connected: %i", command->socket_id);
+		player *p = new player;
+		p->socket = command->player_id;
+		//p->curr_face = 0;  // position setzen !!!
+		//p->curr_x = 0;
+		//p->curr_y = 0;
+		
+		player_list[player_count] = p;
+		player_count++;
+		send_to_client(command->player_id, std::to_string(command->player_id).c_str());
+		syslog(LOG_INFO, "New Client connected: %i", command->player_id);
 	}
 	else if (strcmp(command->content, "l")==0)
 	{
 		syslog(LOG_INFO, "Client transmission -- turn left");
+		send_to_client(command->player_id, "empfangen l");
 	}
 	else if (strcmp(command->content, "r")==0)
 	{
 		syslog(LOG_INFO, "Client transmission -- turn right");
+		send_to_client(command->player_id, "empfangen r");
 	}
 	else if (strcmp(command->content, "f")==0)
 	{
-		
+		send_to_client(command->player_id, "empfangen f");
 	}
 }
 
@@ -99,10 +114,19 @@ void write_log(){
 
 }
 
+void send_to_all_clients(char *content)
+{
+	for(int i = 0; i<player_count; i++)
+	{
+		player *p = player_list[i];
+		send_to_client(p->socket, content);
+	}
+}
+
 
 int main() {
-	init_server();
-	while (true)
+	int running = init_server();
+	while (running >= 0)
 	{
 		handle_method();
 	}

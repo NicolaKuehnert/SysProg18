@@ -29,14 +29,13 @@ int init_client()
 			std::cout << "Connection Failed\n"; 
 			return -1; 
 		} 
-		
+		//init();
 		send_to_server("new");
 		
 		char* id = receive_from_server();
 		char *end;
 		set_player_id(atoi(id));
-		//init();
-		//handle_method(get_key);
+		handle_method();
 		
 		return 0;
     } 
@@ -49,10 +48,22 @@ int init_client()
 void handle_method()
 {
 	int running = 1;
-	while (true)
+	while (running)
 	{
+		std::cout << "waiting" << std::endl;
 		char * input = receive_from_server();
-		running = get_key();
+		
+		if(strcmp(input, "status")==0)
+		{
+			std::cout << "status incomming" << std::endl;
+			send_to_server("und weiter");
+			std::cout << "gesendet" << std::endl;
+		} 
+		else {
+			std::cout << "other message" << std::endl;
+			send_to_server("und wieder");
+		}
+		//running = get_key();
 	}
 }
 
