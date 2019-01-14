@@ -52,7 +52,7 @@ void handle_method()
 	{
 		std::cout << "waiting" << std::endl;
 		char * input = receive_from_server();
-		
+		sleep(1);
 		if(strcmp(input, "status")==0)
 		{
 			std::cout << "status incomming" << std::endl;
@@ -76,7 +76,7 @@ char *receive_from_server()
 {
 	int len = 1024;
 	char buffer[len] = {0}; 
-	read(sock, buffer, len); 
+	recv(sock, buffer, len, 0); 
 	std::cout << buffer << std::endl;
 	
 	char* s = new char[len + 1];

@@ -142,10 +142,6 @@ int get_key()
 		case 'E':
 			return 0;
 			break;
-		// Alle anderen Tasten sollen ignoriert werden
-		default:
-			send_move("f");
-			break;
 	}
 	wrefresh(win);
 	return 1;

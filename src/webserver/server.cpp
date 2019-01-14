@@ -51,7 +51,7 @@ message *receive_from_client() {
 	
 	if ((new_socket = accept(s, (struct sockaddr *)&my_addr, (socklen_t*)&peer_addr_size))>=0) 
 	{ 
-		read(new_socket, buffer, 1024); 
+		recv(new_socket, buffer, 1024, 0); 
 		std::cout << buffer << std::endl;
 		message * m= new message;
 		m->content = buffer;
@@ -73,6 +73,7 @@ void handle_method()
 	send_to_all_clients("status");
 	std::cout << "waitung" << std::endl;
 	message *command = receive_from_client();
+	std::cout << "nachricht bekommen" << std::endl;
 	if(strcmp(command->content, "new")==0)
 	{
 		//syslog("New Client connected");
