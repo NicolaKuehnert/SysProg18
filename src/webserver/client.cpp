@@ -11,7 +11,7 @@ struct sockaddr_in serv_addr;
 
 int init_client() 
 {
-	    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
+	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
     { 
 		std::cout << "\n Socket creation error \n"; 
         return -1; 
@@ -35,13 +35,11 @@ int init_client()
 		char* id = receive_from_server();
 		char *end;
 		set_player_id(atoi(id));
-		init();
-		handle_method(get_key);
 		
 		return 0;
     } 
     else {
-		std::cout << "Invalid Adress\n";
+		//std::cout << "Invalid Adress\n";
 	}
 	return -1;
 }
@@ -66,7 +64,7 @@ char *receive_from_server()
 	int len = 1024;
 	char buffer[len] = {0}; 
 	read(sock, buffer, len); 
-	std::cout << buffer << std::endl;
+	//std::cout << buffer << std::endl;
 	
 	char* s = new char[len + 1];
 	
