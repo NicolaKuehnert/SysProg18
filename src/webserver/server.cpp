@@ -41,7 +41,7 @@ void init_server()
 	}
 }
 
-char *receive_from_client() {
+message *receive_from_client() {
 	int new_socket;
 	char buffer[1024] = {0}; 
 	
@@ -49,10 +49,13 @@ char *receive_from_client() {
 	{ 
 		read(new_socket, buffer, 1024); 
 		std::cout << buffer << std::endl;
-		player_id = new_socket;
-		char *b = buffer;
+		//player_id = new_socket;
+		//char *b = buffer;
+		message * m = new message;
+		m->content = buffer;
+		m->socket_id = new_socket;
 		syslog(LOG_INFO, "Client transmission recieved");
-		return b;
+		return m;
 	} 
 	else {
 		std::cout << "Fail receive\n";
@@ -62,24 +65,25 @@ char *receive_from_client() {
 }
 
 
-void handle_method(const char *command)
+void handle_method()
 {
-	if(strcmp(command, "new")==0)
+	message *command = receive_from_client();
+	if(strcmp(command->content, "new")==0)
 	{
 		//syslog("New Client connected");
 		std::cout << "new client" <<std::endl;
-		send_to_client(player_id, std::to_string(player_id).c_str());
-		syslog(LOG_INFO, "New Client connected: %i", player_id);
+		send_to_client(command->socket_id, std::to_string(command->socket_id).c_str());
+		syslog(LOG_INFO, "New Client connected: %i", command->socket_id);
 	}
-	else if (strcmp(command, "l")==0)
+	else if (strcmp(command->content, "l")==0)
 	{
 		syslog(LOG_INFO, "Client transmission -- turn left");
 	}
-	else if (strcmp(command, "r")==0)
+	else if (strcmp(command->content, "r")==0)
 	{
 		syslog(LOG_INFO, "Client transmission -- turn right");
 	}
-	else if (strcmp(command, "f")==0)
+	else if (strcmp(command->content, "f")==0)
 	{
 		
 	}
@@ -100,7 +104,7 @@ int main() {
 	init_server();
 	while (true)
 	{
-		handle_method(receive_from_client());
+		handle_method();
 	}
 	//close(s);
 	syslog(LOG_INFO, "Server closing...");

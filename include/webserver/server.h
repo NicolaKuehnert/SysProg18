@@ -6,11 +6,14 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-
+typedef struct message{
+	int socket_id;
+	char* content;
+}message;
 
 void init_server();
-char *receive_from_client();
+message *receive_from_client();
 void send_to_client(int socket, const char *content);
-void handle_method(const char *command);
+void handle_method();
 
 #endif

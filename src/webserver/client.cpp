@@ -35,8 +35,8 @@ int init_client()
 		char* id = receive_from_server();
 		char *end;
 		set_player_id(atoi(id));
-		init();
-		handle_method(get_key);
+		//init();
+		//handle_method(get_key);
 		
 		return 0;
     } 
@@ -46,13 +46,13 @@ int init_client()
 	return -1;
 }
 
-void handle_method(int (*get_key)())
+void handle_method()
 {
 	int running = 1;
 	while (true)
 	{
 		char * input = receive_from_server();
-		running = (get_key)();
+		running = get_key();
 	}
 }
 

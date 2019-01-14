@@ -9,7 +9,7 @@
 int init_client();
 char *receive_from_server();
 void send_to_server(char *content);
-void handle_method(int (*get_key)());
+void handle_method();
 
 
 #endif
