@@ -30,24 +30,7 @@ int _server(){
 }
 
 void draw_board(){
-	// muss aufgerufen werden, bevor ncurses genutzt werden kann
-	initscr();
-	// initialisiert die Farben
-	start_color();
-
-	
-	// Diese Farbpaare brauchen wir später. Ein Paar besteht immer aus seiner ID, der Vordergrundfarbe (VG) und der Hintergrundfarbe (HG)
-	init_pair(2, 7, 0); //unser Standard: VG weiß, HG schwarz
-	init_pair(3, 2, 0); //VG grün, HG schwarz
-	init_pair(4, 5, 0); //VG magenta, HG schwarz
-	init_pair(5, 1, 0); //VG rot, HG schwarz
-	init_pair(6, 6, 0); //VG cyan, HG schwarz
-	init_pair(7, 3, 0); //VG gelb, HG schwarz
-	init_pair(8, 0, 7);
-	
-	// zeichnet den Rand; Zeichen 0 ist die Linie;
-	//			rechts, links, oben, unten, oben links, oben rechts, unten links, unten rechts
-	wborder(win, 0, 0, 0, 0, 0, 0, 0, 0);
+	clear();
 	//zeige den Rand schonmal an
 	wrefresh(win);
 	
@@ -185,7 +168,6 @@ int init(){
 				break;
 			case '\n':
 				if(pos == 0){
-					endwin();
 					std::cout << "Menü ende";
 					running = false;
 				}
@@ -200,7 +182,16 @@ int init(){
 		}
 	}
 	try{
-		
+		mvwaddch(win, ((LINES/2)-2), ((COLS/2)-8), ' ' | COLOR_PAIR(2));
+		for(int i = 0;i<sizeof(play)+2;i++){
+			waddch(win, ' ' | COLOR_PAIR(2));
+		}
+		mvwaddch(win, LINES/2, (COLS/2)-8, ' ' | COLOR_PAIR(2));
+
+		for(int i = 0;i<sizeof(start_server)+2;i++){
+			waddch(win, ' ' | COLOR_PAIR(2));
+		}
+
 		init_client();
 		draw_board();
 		handle_method(get_key);
