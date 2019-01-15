@@ -58,11 +58,18 @@ void handle_method()
 		{
 			running = get_key();
 		}
+		send_to_server("close");
 	}
 	else {
 		while(1)
 		{
 			char * input = receive_from_server();
+			
+			if(strcmp(input, "close") == 0)
+			{
+				end();
+				return;
+			}
 		}
 	}
 	

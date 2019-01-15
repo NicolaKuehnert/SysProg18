@@ -162,7 +162,11 @@ void handle_method(int c_socket)
 		message  *m = receive_from_client(c_socket);
 		if (m != nullptr)
 		{
-			//send_to_client(c_socket, "nachricht erhalten");
+			if(strcmp(m->content, "close") == 0)
+			{
+				send_to_client(m->player_id, "close");
+				close(m->player_id);
+			}
 		}
 		else 
 		{
