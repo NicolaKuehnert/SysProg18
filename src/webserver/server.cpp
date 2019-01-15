@@ -10,11 +10,12 @@ int s;
 struct sockaddr_in my_addr;
 struct sockaddr_in peer_addr;
 socklen_t peer_addr_size;
-static player *player_list[10];
-static int player_count = 0;
+player *player_list[10];
+int player_count = 0;
 
-player *add_player(int socket_id);
+static player *add_player(int socket_id);
 void accept_connection();
+void send_status();
 
 int init_server()
 {
@@ -51,7 +52,7 @@ int init_server()
 
 void accept_connection()
 {
-	
+	send_status();
 	while (1) {
 		std::cout << "waitung for client" << std::endl;
 		int new_socket, pid;
@@ -73,17 +74,37 @@ void accept_connection()
 			 exit(0);
 		  }
 		  else {
-			 close(new_socket);
+			close(new_socket);
 		  }
    }
 }
 
-player *add_player(int socket_id)
+void send_status()
+{
+	int pid = fork();
+	if (pid < 0) 
+	{
+	 exit(1);
+	}
+	if (pid == 0) 
+	{
+		while(true)
+		{
+			std::cout << std::to_string(player_count) << std::endl;
+			sleep(1);
+			std::cout << "gesendet" << std::endl;
+			send_to_all_clients("status");
+		}
+	}
+}
+
+static player *add_player(int socket_id)
 {
 	player *p = new player;
 	p->socket = socket_id;
 	player_list[player_count] = p;
 	player_count++;
+	std::cout << std::to_string(player_count) << std::endl;
 	// hier noch position und punkte....
 	return p;
 }
@@ -126,7 +147,7 @@ void handle_method(int c_socket)
 		message  *m = receive_from_client(c_socket);
 		if (m != nullptr)
 		{
-			send_to_client(c_socket, "nachricht erhalten");
+			//send_to_client(c_socket, "nachricht erhalten");
 		}
 		else 
 		{
