@@ -12,21 +12,21 @@ int player_id = 0;
 int _server(){
 	try{
 		int pid = fork();
-		std::cout << pid;
 		//wenn Kindprozess, dann den Server starten
 		if(pid==0){
 			char * const envi[] = {NULL};
 			char * const command[] = {"./server", NULL};
-			std::cout << "in child";
-			execl("gnome-terminal", (char *) 0);
-			execve("/usr/Desktop/SysProg18/src/webserver/server", command, envi);
-		}
+			//execl("/bin/bash", "gnome-terminal", "-e", "ls", (char*)0);
+			execve("/home/nicola/Desktop/SysProg18/src/webserver/server", command, envi);
+			_exit(1);
+		} else {
+			sleep(5);
+		}	
 		return pid;
 	} catch (...) {
 		end();
-		std::cout << "kein Fork";
 	}
-	std::cout << "Server läuft?";
+	
 }
 
 void draw_board(){
@@ -80,7 +80,6 @@ void draw_board(){
 }
 
 int init(){
-	std::cout << "init";
 	// muss aufgerufen werden, bevor ncurses genutzt werden kann
 	initscr();
 	// kein Enter benötigt, Tastendrücken wird sofort weitergegeben
@@ -137,9 +136,9 @@ int init(){
 	
 	
 	wrefresh(win);
-	std::cout << "Menü geladen";
 
 	int pos = 0;
+	int in = 0;
 	bool running = true;
 	while(running){
 		int ch = wgetch(win);
@@ -168,14 +167,11 @@ int init(){
 				break;
 			case '\n':
 				if(pos == 0){
-					std::cout << "Menü ende";
 					running = false;
 				}
-				else if(pos == 1){
-					endwin();
-					std::cout << "Versuche Server zu starten";
+				else if(pos == 1 && in == 0){
+					in = 1;
 					int id = _server();
-					std::cout << id;
 					running = false;
 				}
 			break;
@@ -191,10 +187,16 @@ int init(){
 		for(int i = 0;i<sizeof(start_server)+2;i++){
 			waddch(win, ' ' | COLOR_PAIR(2));
 		}
-
-		init_client();
-		draw_board();
-		handle_method(get_key);
+		clear();
+		int check = init_client();
+		if(check >=0){
+			draw_board();
+			handle_method(get_key);
+		} else {
+			end();
+			sleep(1);
+			return -1;
+		}
 	} catch (...) {
 		end();
 	}

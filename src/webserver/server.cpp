@@ -28,16 +28,16 @@ void init_server()
 		if(b != -1) {
 			int l = listen(s, LISTEN_BACKLOG);
 			syslog(LOG_INFO, "Server started");
-			std::cout << "Server running.\n";
+			//std::cout << "Server running.\n";
 		} else {
 			syslog(LOG_ERR, "Server crashed - failed binding");
-			std::cout << "FAIL bind\n";
-			std::cout << std::to_string(b) + "\n";
+			//std::cout << "FAIL bind\n";
+			//std::cout << std::to_string(b) + "\n";
 		}
 	} else {
 		syslog(LOG_ERR, "Server did not start - socket fail");
-		std::cout << "FAIL socket\n";
-		std::cout << std::to_string(s) + "\n";
+		//std::cout << "FAIL socket\n";
+		//std::cout << std::to_string(s) + "\n";
 	}
 }
 
@@ -48,7 +48,7 @@ char *receive_from_client() {
 	if ((new_socket = accept(s, (struct sockaddr *)&my_addr, (socklen_t*)&peer_addr_size))>=0) 
 	{ 
 		read(new_socket, buffer, 1024); 
-		std::cout << buffer << std::endl;
+		//std::cout << buffer << std::endl;
 		player_id = new_socket;
 		char *b = buffer;
 		syslog(LOG_INFO, "Client transmission recieved");
@@ -67,7 +67,7 @@ void handle_method(const char *command)
 	if(strcmp(command, "new")==0)
 	{
 		//syslog("New Client connected");
-		std::cout << "new client" <<std::endl;
+		//std::cout << "new client" <<std::endl;
 		send_to_client(player_id, std::to_string(player_id).c_str());
 		syslog(LOG_INFO, "New Client connected: %i", player_id);
 	}
