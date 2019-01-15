@@ -16,8 +16,10 @@ int _server(){
 		if(pid==0){
 			char * const envi[] = {NULL};
 			char * const command[] = {"./server", NULL};
-			//execl("/bin/bash", "gnome-terminal", "-e", "ls", (char*)0);
+			
+			//Absoluten Pfad anpassen!!!
 			execve("/home/nicola/Desktop/SysProg18/src/webserver/server", command, envi);
+			
 			_exit(1);
 		} else {
 			sleep(5);
