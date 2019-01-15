@@ -1,4 +1,5 @@
 #include "webserver/game_logic.h"
+#include <iostream>
 
 
 
@@ -18,26 +19,21 @@ void init_game()
 {
 	TM1637_setup();
 	float geschwindigkeit = sensor.getTemp() / 50;
-	
 }
 
 
 void move_left(player * pl) {
 	switch(pl->curr_face){
 		case 0:
-			pl->curr_y++;
 			pl->curr_face = 1;
 			break;
 		case 1:
-			pl->curr_x--;
 			pl->curr_face = 2;
 			break;
 		case 2:
-			pl->curr_y--;
 			pl->curr_face = 3;
 			break;
 		case 3:
-			pl->curr_x++;
 			pl->curr_face = 0;
 			break;
 		}
@@ -45,16 +41,12 @@ void move_left(player * pl) {
 
 void move_right(player * pl) {
 	if(pl->curr_face == 0){
-			pl->curr_y--;
 			pl->curr_face = 3;
 	}else if(pl->curr_face == 3){
-			pl->curr_x--;
 			pl->curr_face = 2;
 	}else if(pl->curr_face == 2){
-			pl->curr_y++;
 			pl->curr_face = 1;
 	}else if(pl->curr_face == 1){
-			pl->curr_x++;
 			pl->curr_face = 0;
 	}
 }

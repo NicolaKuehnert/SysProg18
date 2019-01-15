@@ -5,6 +5,7 @@
 #include <syslog.h>
 #include "webserver/server.h"
 #include <netdb.h>
+#include <signal.h>
 
 int s;
 struct sockaddr_in my_addr;
@@ -13,6 +14,8 @@ socklen_t peer_addr_size;
 player *player_list[10];
 int player_count = 0;
 bool running = false;
+
+int fork_id_send;
 
 static int add_player(int socket_id);
 void accept_connection();
@@ -33,9 +36,10 @@ int init_server()
 	if (s != -1) {
 		int b = bind(s, (struct sockaddr *) &my_addr,sizeof(struct sockaddr_in));
 		if(b != -1) {
-			int l = listen(s, LISTEN_BACKLOG);
+			listen(s, LISTEN_BACKLOG);
 			syslog(LOG_INFO, "Server started");
 			std::cout << "Server running.\n";
+			init_game();
 			return 0;
 		} else {
 			syslog(LOG_ERR, "Server crashed - failed binding");
@@ -86,6 +90,7 @@ void send_status()
 {
 	if(running)
 	{
+		//kill(fork_id_send,SIGKILL);
 		return;
 	}
 	int pid = fork();
@@ -107,7 +112,17 @@ void send_status()
 				m = std::to_string(p->socket) + "," + std::to_string(p->curr_face) + "," + std::to_string(p->curr_x) + "," + std::to_string(p->curr_y) + "," + std::to_string(p->points) + ";";
 			}
 			send_to_all_clients(m.c_str());
+			
+			for(int i = 0; i<::player_count; i++)
+			{
+				player *p = player_list[i];
+				move_forward(p);
+			}
 		}
+	}
+	else
+	{
+		fork_id_send = pid;
 	}
 	running = true;
 }
@@ -155,6 +170,20 @@ void send_to_all_clients(const char *content)
 	}
 }
 
+player* get_player_by_id(int id)
+{
+	player *pl;
+	for(int i = 0; i<::player_count; i++)
+	{
+		pl = player_list[i];
+		if(pl->socket == id)
+		{
+			return pl;
+		}
+	}
+	return nullptr;
+}
+
 void handle_method(int c_socket)
 {
 	while(true)
@@ -162,6 +191,12 @@ void handle_method(int c_socket)
 		message  *m = receive_from_client(c_socket);
 		if (m != nullptr)
 		{
+			player *p = get_player_by_id(m->player_id);
+			if(p == nullptr)
+			{
+				add_player(c_socket);
+				p = get_player_by_id(m->player_id);
+			}
 			if(strcmp(m->content, "close") == 0)
 			{
 				send_to_client(m->player_id, "close");
@@ -171,6 +206,14 @@ void handle_method(int c_socket)
 			{
 				std::cout << m->player_id << std::endl;
 				send_to_client(m->player_id, std::to_string(m->player_id).c_str());
+			}
+			else if(strcmp(m->content, "l") == 0)
+			{
+				move_left(p);
+			}
+			else if(strcmp(m->content, "r") == 0)
+			{
+				move_right(p);
 			}
 		}
 		else 
@@ -183,7 +226,7 @@ void handle_method(int c_socket)
 
 
 int main() {
-	int running = init_server();
+	init_server();
 	accept_connection();
 	syslog(LOG_INFO, "Server closing...");
 	return 0;

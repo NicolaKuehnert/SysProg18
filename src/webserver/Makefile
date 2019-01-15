@@ -16,6 +16,9 @@ SERVER_H = $(INCLUDE_PATH)/$(PROJECT)/server.h
 CLIENT_C = client.cpp
 CLIENT_H = $(INCLUDE_PATH)/$(PROJECT)/client.h
 
+GAME_LOGIC_C = game_logic.cpp
+GAME_LOGIC_H = $(INCLUDE_PATH)/$(PROJECT)/game_logic.h
+
 MAIN_C = main.cpp
 
 
@@ -27,13 +30,16 @@ $(PROJECT): tempSensor.so ledanzeige.so client.o gui.o main.o
 main.o: $(MAIN_C) $(GUI_H) $(SERVER_H) $()
 	g++ $(CFLAGS) $(INCLUDE) $(MAIN_C)
 	
-server: server.o
-	g++ -o server server.o $(OFLAGS)
+server: server.o game_logic.o
+	g++ -o server server.o game_logic.o $(OFLAGS)
 
 gui.o: $(GUI_C) $(GUI_H)
 	g++ $(CFLAGS) $(INCLUDE) $(GUI_C)
 	
-server.o: $(SERVER_C) $(SERVER_H)
+game_logic.o: $(GAME_LOGIC_C) $(GAME_LOGIC_H)
+	g++ $(CFLAGS) $(INCLUDE) $(GAME_LOGIC_C)
+	
+server.o: $(SERVER_C) $(SERVER_H) 
 	g++ $(CFLAGS) $(INCLUDE) $(SERVER_C)
 	
 client.o: $(CLIENT_C) $(CLIENT_H)

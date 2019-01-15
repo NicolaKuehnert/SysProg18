@@ -78,6 +78,8 @@ void handle_method()
 				int x = atoi(strtok(NULL, ","));
 				int y = atoi(strtok(NULL, ","));
 				int points = atoi(strtok(NULL, ","));
+				//std::cout << x << std::endl;
+				//std::cout << face << std::endl;
 				set_position(x, y, face);
 			}
 		}

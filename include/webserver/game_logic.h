@@ -9,4 +9,12 @@ typedef struct player {
 	int socket;
 }player;
 
+void init_game();
+
+void move_left(player * pl);
+
+void move_right(player * pl);
+
+void move_forward(player * pl);
+
 #endif
