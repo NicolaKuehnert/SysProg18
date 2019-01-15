@@ -33,7 +33,8 @@ int init_client()
 		send_to_server("get_id");
 		
 		char* id = receive_from_server();
-		set_player_id(atoi(id));
+		player_id = atoi(id);
+		//set_player_id(atoi(id));
 		handle_method();
 		
 		return 0;
@@ -69,6 +70,15 @@ void handle_method()
 			{
 				end();
 				return;
+			}
+			else 
+			{
+				int id = atoi(strtok(input, ","));
+				int face = atoi(strtok(NULL, ","));
+				int x = atoi(strtok(NULL, ","));
+				int y = atoi(strtok(NULL, ","));
+				int points = atoi(strtok(NULL, ","));
+				set_position(x, y, face);
 			}
 		}
 	}

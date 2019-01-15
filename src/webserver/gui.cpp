@@ -59,6 +59,7 @@ int init(){
 	waddch(win, 'l' | COLOR_PAIR(7));
 	waddch(win, 'o' | COLOR_PAIR(7));
 	waddch(win, 'w' | COLOR_PAIR(7));
+	//std::cout << player_id << std::endl;
 	
 	// Setze den Cursor auf die letzte, sichtbare Zeile (Lines-1 groß, also Lines-2 die letzte, sichtbare Line)
 	mvwaddch(win, LINES-2, 3, ' ' | COLOR_PAIR(2));
@@ -119,6 +120,9 @@ int get_key()
 }
 
 void set_position(int x, int y, int direction) {
+	std::cout << x << std::endl;
+	std::cout << y << std::endl;
+	std::cout << direction << std::endl;
 	if (direction == 0 || direction == 2) {
 		mvwaddch(win, x, y, ACS_VLINE | COLOR_PAIR(7));
 	} else if(direction == 1 || direction == 3) {
@@ -128,7 +132,7 @@ void set_position(int x, int y, int direction) {
 
 void set_player_id(int id)
 {
-	player_id = id;
+	::player_id = id;
 }
 
 void send_move(char *direction)

@@ -118,8 +118,8 @@ static int add_player(int socket_id)
 	p->socket = socket_id;
 	p->points = 0;
 	p->curr_face = 0;
-	p->curr_x = 2;
-	p->curr_y = 2;
+	p->curr_x = 5;
+	p->curr_y = 5;
 	player_list[::player_count++] = p;
 	return ::player_count;
 }
@@ -166,6 +166,11 @@ void handle_method(int c_socket)
 			{
 				send_to_client(m->player_id, "close");
 				close(m->player_id);
+			}
+			else if(strcmp(m->content, "get_id") == 0)
+			{
+				std::cout << m->player_id << std::endl;
+				send_to_client(m->player_id, std::to_string(m->player_id).c_str());
 			}
 		}
 		else 
