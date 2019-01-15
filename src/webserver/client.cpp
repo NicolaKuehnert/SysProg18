@@ -29,7 +29,7 @@ int init_client()
 			std::cout << "Connection Failed\n"; 
 			return -1; 
 		} 
-		//init();
+		init();
 		send_to_server("get_id");
 		
 		char* id = receive_from_server();
@@ -46,19 +46,27 @@ int init_client()
 
 void handle_method()
 {
-	int running = 1;
-	while (running)
+	int pid = fork();
+	if (pid < 0) 
 	{
-		char * input = receive_from_server();
-		if(strcmp(input, "status")==0)
-		{
-			//update das spiel
-		} 
-		else {
-			//was weiß ich
-		}
-		//running = get_key();
+	 exit(1);
 	}
+	if (pid == 0) {
+	 /* This is the client process */
+		int running = 1;
+		while (running)
+		{
+			running = get_key();
+		}
+	}
+	else {
+		while(1)
+		{
+			char * input = receive_from_server();
+		}
+	}
+	
+	
 }
 
 void send_to_server(char *content)
@@ -71,7 +79,7 @@ char *receive_from_server()
 	int len = 1024;
 	char buffer[len] = {0}; 
 	recv(sock, buffer, len, 0); 
-	std::cout << buffer << std::endl;
+	//std::cout << buffer << std::endl;
 	
 	char* s = new char[len + 1];
 	

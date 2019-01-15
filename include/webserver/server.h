@@ -7,6 +7,8 @@
 #include <netinet/in.h>
 #include "webserver/game_logic.h"
 
+extern player *player_list[10];
+extern int player_count;
 
 typedef struct message{
 	int player_id;
@@ -17,6 +19,6 @@ int init_server();
 message *receive_from_client(int c_socket);
 void send_to_client(int socket, const char *content);
 void handle_method(int c_socket);
-void send_to_all_clients(char *content);
+void send_to_all_clients(const char *content);
 
 #endif

@@ -12,8 +12,9 @@ struct sockaddr_in peer_addr;
 socklen_t peer_addr_size;
 player *player_list[10];
 int player_count = 0;
+bool running = false;
 
-static player *add_player(int socket_id);
+static int add_player(int socket_id);
 void accept_connection();
 void send_status();
 
@@ -52,7 +53,6 @@ int init_server()
 
 void accept_connection()
 {
-	send_status();
 	while (1) {
 		std::cout << "waitung for client" << std::endl;
 		int new_socket, pid;
@@ -61,7 +61,7 @@ void accept_connection()
 		  {
 			 exit(1);
 		  }
-		  add_player(new_socket);
+		  
 		  pid = fork();
 		  if (pid < 0) 
 		  {
@@ -74,13 +74,20 @@ void accept_connection()
 			 exit(0);
 		  }
 		  else {
-			close(new_socket);
+			  ::player_count = add_player(new_socket);
+			  send_status();
+			  close(new_socket);
 		  }
+		  
    }
 }
 
 void send_status()
 {
+	if(running)
+	{
+		return;
+	}
 	int pid = fork();
 	if (pid < 0) 
 	{
@@ -90,23 +97,31 @@ void send_status()
 	{
 		while(true)
 		{
-			std::cout << std::to_string(player_count) << std::endl;
 			sleep(1);
 			std::cout << "gesendet" << std::endl;
-			send_to_all_clients("status");
+			std::string m;
+			for(int i = 0; i<::player_count; i++)
+			{
+				player *p = player_list[i];
+				// nachricht : "id,currface,curr_x,curr_y,points;"
+				m = std::to_string(p->socket) + "," + std::to_string(p->curr_face) + "," + std::to_string(p->curr_x) + "," + std::to_string(p->curr_y) + "," + std::to_string(p->points) + ";";
+			}
+			send_to_all_clients(m.c_str());
 		}
 	}
+	running = true;
 }
 
-static player *add_player(int socket_id)
+static int add_player(int socket_id)
 {
 	player *p = new player;
 	p->socket = socket_id;
-	player_list[player_count] = p;
-	player_count++;
-	std::cout << std::to_string(player_count) << std::endl;
-	// hier noch position und punkte....
-	return p;
+	p->points = 0;
+	p->curr_face = 0;
+	p->curr_x = 2;
+	p->curr_y = 2;
+	player_list[::player_count++] = p;
+	return ::player_count;
 }
 
 message *receive_from_client(int c_socket)
@@ -131,9 +146,9 @@ void send_to_client(int c_socket,const char* content)
 	send(c_socket, content , strlen(content), 0 ); 
 }
 
-void send_to_all_clients(char *content)
+void send_to_all_clients(const char *content)
 {
-	for(int i = 0; i<player_count; i++)
+	for(int i = 0; i<::player_count; i++)
 	{
 		player *p = player_list[i];
 		send_to_client(p->socket, content);

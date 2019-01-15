@@ -92,37 +92,6 @@ int end(){
 	return 0;
 }
 
-int move()
-{
-	/*int running = 1;
-	
-	while(running){
-		int ch = wgetch(win);
-		sleep(1);
-		// Auswerten des Inputs
-		switch(ch){
-			// Spielfigur nach links drehen
-			case 'a':
-				send_move("l");
-				break;
-			// Spielfigur nach rechts drehen
-			case 'd':
-				send_move("r");
-				break;
-			// Spiel beenden, wichtig: Shift + e drücken!
-			case 'E':
-			running = 0;
-				break;
-			// Alle anderen Tasten sollen ignoriert werden
-			default:
-				send_move("f");
-				break;
-		}
-		wrefresh(win);		
-    }
-	endwin();
-	return 0;*/
-}
 
 int get_key()
 {
@@ -132,10 +101,12 @@ int get_key()
 	switch(ch){
 		// Spielfigur nach links drehen
 		case 'a':
+			std::cout << "links" << std::endl;
 			send_move("l");
 			break;
 		// Spielfigur nach rechts drehen
 		case 'd':
+			std::cout << "rechts" << std::endl;
 			send_move("r");
 			break;
 		// Spiel beenden, wichtig: Shift + e drücken!
