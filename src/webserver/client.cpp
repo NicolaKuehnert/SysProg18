@@ -30,12 +30,12 @@ int init_client()
 			return -1; 
 		} 
 		//init();
-		send_to_server("new");
+		//send_to_server("new");
 		
-		char* id = receive_from_server();
+		/*char* id = receive_from_server();
 		char *end;
 		set_player_id(atoi(id));
-		handle_method();
+		handle_method();*/
 		
 		return 0;
     } 
@@ -50,8 +50,9 @@ void handle_method()
 	int running = 1;
 	while (running)
 	{
-		std::cout << "waiting" << std::endl;
-		char * input = receive_from_server();
+		//std::cout << "waiting" << std::endl;
+		//char * input = receive_from_server();
+		char *input = "status";
 		sleep(1);
 		if(strcmp(input, "status")==0)
 		{
@@ -69,7 +70,9 @@ void handle_method()
 
 void send_to_server(char *content)
 {
-	send(sock, content, strlen(content), 0 ); 
+	int i = send(sock, content, strlen(content), 0 ); 
+	std::cout << std::to_string(i) << std::endl;
+	sleep(1);
 }
 
 char *receive_from_server()

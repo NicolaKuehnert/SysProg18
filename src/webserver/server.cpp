@@ -4,6 +4,7 @@
 #include <iostream>
 #include <syslog.h>
 #include "webserver/server.h"
+#include <netdb.h>
 
 int s;
 struct sockaddr_in my_addr;
@@ -12,7 +13,10 @@ socklen_t peer_addr_size;
 static player *player_list[10];
 static int player_count = 0;
 
-int init_server() 
+player *add_player(int socket_id);
+void accept_connection();
+
+int init_server()
 {
 	openlog("TronServer",LOG_INFO | LOG_PID, LOG_USER);
 
@@ -45,74 +49,65 @@ int init_server()
 	}
 }
 
-message *receive_from_client() {
-	int new_socket;
-	char buffer[1024] = {0}; 
-	
-	if ((new_socket = accept(s, (struct sockaddr *)&my_addr, (socklen_t*)&peer_addr_size))>=0) 
-	{ 
-		recv(new_socket, buffer, 1024, 0); 
-		std::cout << buffer << std::endl;
-		message * m= new message;
-		m->content = buffer;
-		m->player_id = new_socket;
-		syslog(LOG_INFO, "Client transmission recieved");
-		return m;
-	} 
-	else {
-		std::cout << "Fail receive\n";
-		syslog(LOG_INFO, "Client transmission failed to recieve");
-	}
-	return nullptr;
-}
-
-
-void handle_method()
+void accept_connection()
 {
-	sleep(1);
-	send_to_all_clients("status");
-	std::cout << "waitung" << std::endl;
-	message *command = receive_from_client();
-	std::cout << "nachricht bekommen" << std::endl;
-	if(strcmp(command->content, "new")==0)
-	{
-		//syslog("New Client connected");
-		std::cout << "new client" <<std::endl;
-		player *p = new player;
-		p->socket = command->player_id;
-		//p->curr_face = 0;  // position setzen !!!
-		//p->curr_x = 0;
-		//p->curr_y = 0;
-		
-		player_list[player_count] = p;
-		player_count++;
-		send_to_client(command->player_id, std::to_string(command->player_id).c_str());
-		syslog(LOG_INFO, "New Client connected: %i", command->player_id);
-	}
-	else if (strcmp(command->content, "l")==0)
-	{
-		syslog(LOG_INFO, "Client transmission -- turn left");
-		send_to_client(command->player_id, "empfangen l");
-	}
-	else if (strcmp(command->content, "r")==0)
-	{
-		syslog(LOG_INFO, "Client transmission -- turn right");
-		send_to_client(command->player_id, "empfangen r");
-	}
-	else if (strcmp(command->content, "f")==0)
-	{
-		send_to_client(command->player_id, "empfangen f");
-	}
+	
+	while (1) {
+		std::cout << "waitung for client" << std::endl;
+		int new_socket, pid;
+		new_socket = accept(s, (struct sockaddr *)&my_addr, (socklen_t*)&peer_addr_size);
+		if (new_socket < 0) 
+		  {
+			 exit(1);
+		  }
+		  add_player(new_socket);
+		  pid = fork();
+		  if (pid < 0) 
+		  {
+			 exit(1);
+		  }
+		  if (pid == 0) {
+			 /* This is the client process */
+			 close(s);
+			 handle_method(new_socket);
+			 exit(0);
+		  }
+		  else {
+			 close(new_socket);
+		  }
+   }
 }
 
+player *add_player(int socket_id)
+{
+	player *p = new player;
+	p->socket = socket_id;
+	player_list[player_count] = p;
+	player_count++;
+	// hier noch position und punkte....
+	return p;
+}
+
+message *receive_from_client(int c_socket)
+{
+   int n, len = 1024;
+   char buffer[len] = {0};
+   n = read(c_socket,buffer,len);
+   
+   if (n < 0) {
+	  std::cout << "fehler beim socket lesen" << std::endl;
+	  return nullptr;
+   }
+   std::cout << buffer << std::endl;
+   message *m = new message;
+   m->player_id = c_socket;
+   m->content= buffer;
+   return m;
+}
 
 void send_to_client(int c_socket,const char* content) 
 {
 	send(c_socket, content , strlen(content), 0 ); 
-}
-
-void write_log(){
-
 }
 
 void send_to_all_clients(char *content)
@@ -124,15 +119,27 @@ void send_to_all_clients(char *content)
 	}
 }
 
+void handle_method(int c_socket)
+{
+	while(true)
+	{
+		message  *m = receive_from_client(c_socket);
+		if (m != nullptr)
+		{
+			send_to_client(c_socket, "nachricht erhalten");
+		}
+		else 
+		{
+			return;
+		}
+		
+	}
+}
+
 
 int main() {
 	int running = init_server();
-	while (running >= 0)
-	{
-		handle_method();
-	}
-	//close(s);
+	accept_connection();
 	syslog(LOG_INFO, "Server closing...");
 	return 0;
 }
-

@@ -14,9 +14,9 @@ typedef struct message{
 }message;
 
 int init_server();
-message *receive_from_client();
+message *receive_from_client(int c_socket);
 void send_to_client(int socket, const char *content);
-void handle_method();
+void handle_method(int c_socket);
 void send_to_all_clients(char *content);
 
 #endif
