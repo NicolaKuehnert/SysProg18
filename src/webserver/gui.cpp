@@ -194,7 +194,7 @@ int init(){
 		int check = init_client();
 		if(check >=0){
 			draw_board();
-			handle_method(get_key);
+			handle_method();
 		} else {
 			end();
 			sleep(1);
