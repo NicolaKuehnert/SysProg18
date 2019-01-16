@@ -22,7 +22,6 @@ void signal_show_led(int signum)
 }
 void signal_update_game(int signum)
 {
-	std::cout << "update" << std::endl;
 	std::string m;
 	for(int i = 0; i<liste->player_count; i++)
 	{

@@ -2,7 +2,7 @@
 #include <iostream>
 
 
-float takt = 0.0;
+float takt = 500.0;
 
 /**
 @param raw Roher Temperaturwert
@@ -24,7 +24,7 @@ void init_game()
 
 float get_tempo()
 {
-	return TEMPO;
+	return ((sensor.getTemp() / 5) + takt);
 }
 
 

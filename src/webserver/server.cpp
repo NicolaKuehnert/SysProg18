@@ -80,6 +80,7 @@ void accept_connection()
 		  }
 		  if (pid == 0) {
 			 /* This is the client process */
+			 syslog(LOG_INFO, "Neuer Child Prozess");
 			 close(s);
 			 handle_method(new_socket);
 			 exit(0);
@@ -95,6 +96,7 @@ void accept_connection()
 
 void send_status()
 {
+	syslog(LOG_INFO, "status");
 	if(running)
 	{
 		return;
@@ -106,14 +108,18 @@ void send_status()
 	}
 	if (pid == 0) 
 	{
+		syslog(LOG_INFO, "sending prozess");
 		while(true)
 		{
-			sleep(get_tempo());
-			std::cout << fork_id_send << std::endl;
-			if(fork_id_send != 0)
-			{
-				kill(fork_id_send,SIGHUP);
-			}
+			/*syslog(LOG_INFO, "bevor temo");
+			int i = (int)get_tempo();
+			std::cout << i << std::endl;
+			syslog(LOG_INFO, "Temperatur: ");
+			syslog(LOG_INFO, std::to_string(i).c_str());*/
+			sleep(1);
+
+			raise(SIGHUP);
+
 			/*std::string m;
 			for(int i = 0; i<liste->player_count; i++)
 			{

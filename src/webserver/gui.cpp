@@ -261,7 +261,7 @@ void set_player_id(int id)
 void send_move(char *direction)
 {
 	send_to_server(direction);
-	char * result = receive_from_server();
+	//char * result = receive_from_server();
 	
 	// ergebnis muss noch ausgelesen werden.....
 	// dann set_position(x, y, direction);

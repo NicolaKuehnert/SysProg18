@@ -6,7 +6,7 @@
 
 extern float takt;
 
-#define TEMPO ((sensor.getTemp() / 50) - takt)
+#define TEMPO ((sensor.getTemp() / 5) + takt)
 
 typedef struct player {
 	int curr_face, curr_x, curr_y;
