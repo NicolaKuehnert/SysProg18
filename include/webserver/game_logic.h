@@ -4,7 +4,7 @@
 #include <ledanzeige/TM1637.h>
 #include <ledanzeige/segmentanzeige.h>
 
-#define TEMPO sensor.getTemp() / 50
+//#define TEMPO sensor.getTemp() / 50
 
 typedef struct player {
 	int curr_face, curr_x, curr_y;

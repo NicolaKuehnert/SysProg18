@@ -29,13 +29,11 @@ int init_client()
 			std::cout << "Connection Failed\n"; 
 			return -1; 
 		} 
-		init();
 		send_to_server("get_id");
 		
 		char* id = receive_from_server();
 		player_id = atoi(id);
 		//set_player_id(atoi(id));
-		handle_method();
 		
 		return 0;
     } 

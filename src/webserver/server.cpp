@@ -64,7 +64,7 @@ int init_server()
 void accept_connection()
 {
 	while (1) {
-		std::cout << "waitung for client" << std::endl;
+		//std::cout << "waitung for client" << std::endl;
 		int new_socket, pid;
 		new_socket = accept(s, (struct sockaddr *)&my_addr, (socklen_t*)&peer_addr_size);
 		if (new_socket < 0) 
@@ -108,8 +108,8 @@ void send_status()
 	{
 		while(true)
 		{
-			sleep(get_tempo());
-			std::cout << "gesendet" << std::endl;
+			sleep(1);
+			//std::cout << "gesendet" << std::endl;
 			std::string m;
 			for(int i = 0; i<liste->player_count; i++)
 			{
@@ -152,10 +152,10 @@ message *receive_from_client(int c_socket)
    n = read(c_socket,buffer,len);
    
    if (n < 0) {
-	  std::cout << "fehler beim socket lesen" << std::endl;
+	  //std::cout << "fehler beim socket lesen" << std::endl;
 	  return nullptr;
    }
-   std::cout << buffer << std::endl;
+   //std::cout << buffer << std::endl;
    message *m = new message;
    m->player_id = c_socket;
    m->content= buffer;
@@ -210,7 +210,7 @@ void handle_method(int c_socket)
 			}
 			else if(strcmp(m->content, "get_id") == 0)
 			{
-				std::cout << m->player_id << std::endl;
+				//std::cout << m->player_id << std::endl;
 				send_to_client(m->player_id, std::to_string(m->player_id).c_str());
 			}
 			else if(strcmp(m->content, "l") == 0)
