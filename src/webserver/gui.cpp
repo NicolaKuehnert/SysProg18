@@ -18,7 +18,7 @@ int _server(){
 			char * const command[] = {"./server", NULL};
 			
 			//Absoluten Pfad anpassen!!!
-			execve("/home/nicola/Desktop/SysProg18/src/webserver/server", command, envi);
+			execve("/home/pi/git/SysProg18/src/webserver/server", command, envi);
 			
 			_exit(1);
 		} else {

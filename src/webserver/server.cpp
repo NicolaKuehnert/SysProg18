@@ -50,15 +50,18 @@ int init_server()
 			listen(s, LISTEN_BACKLOG);
 			syslog(LOG_INFO, "Server started");
 				//std::cout << "Server running.\n";
+				return 1;
 		} else {
 			syslog(LOG_ERR, "Server crashed - failed binding");
 			//std::cout << "FAIL bind\n";
 			//std::cout << std::to_string(b) + "\n";
+			return 0;
 		}
 	} else {
 		syslog(LOG_ERR, "Server did not start - socket fail");
 		//std::cout << "FAIL socket\n";
 		//std::cout << std::to_string(s) + "\n";
+		return 0;
 	}
 }
 
@@ -72,7 +75,8 @@ void accept_connection()
 		  {
 			 exit(1);
 		  }
-		  
+		  liste->player_count = add_player(new_socket);
+		  send_status();
 		  pid = fork();
 		  if (pid < 0) 
 		  {
@@ -86,8 +90,6 @@ void accept_connection()
 			 exit(0);
 		  }
 		  else {
-			  liste->player_count = add_player(new_socket);
-			  send_status();
 			  close(new_socket);
 		  }
 		  
@@ -96,7 +98,6 @@ void accept_connection()
 
 void send_status()
 {
-	syslog(LOG_INFO, "status");
 	if(running)
 	{
 		return;
@@ -108,39 +109,28 @@ void send_status()
 	}
 	if (pid == 0) 
 	{
-		syslog(LOG_INFO, "sending prozess");
-		while(true)
-		{
-			/*syslog(LOG_INFO, "bevor temo");
-			int i = (int)get_tempo();
-			std::cout << i << std::endl;
-			syslog(LOG_INFO, "Temperatur: ");
-			syslog(LOG_INFO, std::to_string(i).c_str());*/
-			sleep(1);
-
-			raise(SIGHUP);
-
-			/*std::string m;
-			for(int i = 0; i<liste->player_count; i++)
-			{
-				player *p = liste->list[i];
-				// nachricht : "id,currface,curr_x,curr_y,points;"
-				m = std::to_string(p->socket) + "," + std::to_string(p->curr_face) + "," + std::to_string(p->curr_x) + "," + std::to_string(p->curr_y) + "," + std::to_string(p->points) + ";";
-			}
-			send_to_all_clients(m.c_str());
-			
-			for(int i = 0; i<liste->player_count; i++)
-			{
-				player *p = liste->list[i];
-				move_forward(p);
-			}*/
-		}
+		run_and_send();
 	}
 	else
 	{
 		fork_id_send = pid;
 	}
 	running = true;
+}
+
+void run_and_send()
+{
+	while(true)
+	{
+		/*syslog(LOG_INFO, "bevor temo"); // sollte bleiben, als geschwingikeit
+		int i = (int)get_tempo();
+		std::cout << i << std::endl;
+		syslog(LOG_INFO, "Temperatur: ");
+		syslog(LOG_INFO, std::to_string(i).c_str());*/
+		sleep(1);
+
+		raise(SIGHUP);
+	}
 }
 
 static int add_player(int socket_id)
@@ -179,6 +169,7 @@ void send_to_client(int c_socket,const char* content)
 
 void send_to_all_clients(const char *content)
 {
+	syslog(LOG_INFO, "send to all");
 	for(int i = 0; i<liste->player_count; i++)
 	{
 		player *p = liste->list[i];
@@ -217,6 +208,7 @@ void handle_method(int c_socket)
 			{
 				send_to_client(m->player_id, "close");
 				close(m->player_id);
+				kill(fork_id_send,SIGINT);
 			}
 			else if(strcmp(m->content, "get_id") == 0)
 			{
@@ -225,11 +217,13 @@ void handle_method(int c_socket)
 			}
 			else if(strcmp(m->content, "l") == 0)
 			{
-				move_left(p);
+				kill(fork_id_send,SIGUSR1);
+				//move_left(p);
 			}
 			else if(strcmp(m->content, "r") == 0)
 			{
-				move_right(p);
+				kill(fork_id_send,SIGUSR2);
+				//move_right(p);
 			}
 		}
 		else 
@@ -240,11 +234,13 @@ void handle_method(int c_socket)
 }
 
 int save_to_db(){
+	
 	std::string out = "INSERT INTO gameboard(id, spieldauer) VALUES(";
 	for(int i = 0; i < liste->player_count; i++){
 		out += std::to_string(db_game_id) + ",";
 		out += std::to_string(10) + ");";
 	}
+	syslog(LOG_INFO, out.c_str());
 	char *ptr = &out[0u];
 	db.exec(ptr);
 
@@ -261,12 +257,15 @@ int save_to_db(){
 
 
 int main() {
-	//signal(SIGINT, signalHandler); 
 	signal(SIGINT, signal_save_db_exit); 
 	signal(SIGHUP, signal_update_game); 
 	signal(SIGTERM, signal_show_led); 
-	init_server();
-	accept_connection();
+	signal(SIGUSR1, signal_left); 
+	signal(SIGUSR2, signal_right); 
+	if(init_server())
+	{
+		accept_connection();
+	}
 	syslog(LOG_INFO, "Server closing...");
 	return 0;
 }

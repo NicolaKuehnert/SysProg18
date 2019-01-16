@@ -1,6 +1,6 @@
 #ifndef SERVER_H
 #define SERVER_H
-#define PORT 8081
+#define PORT 8085
 #define LISTEN_BACKLOG 50
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -32,5 +32,6 @@ void send_to_client(int socket, const char *content);
 void handle_method(int c_socket);
 void send_to_all_clients(const char *content);
 int save_to_db();
+void run_and_send();
 
 #endif

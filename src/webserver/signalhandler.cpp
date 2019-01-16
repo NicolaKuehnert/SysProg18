@@ -1,6 +1,7 @@
 #include <iostream>
 #include <ledanzeige/TM1637.h>
-#include <ledanzeige/segmentanzeige.h>#include <csignal>
+#include <ledanzeige/segmentanzeige.h>
+#include <csignal>
 #include "temperatur/sqlite_demo.h"
 #include "webserver/signalhandler.h"
 #include "webserver/server.h"
@@ -12,6 +13,7 @@
 
 void signal_save_db_exit(int signum)
 {
+	save_to_db();
 	std::cout << "exit" << std::endl;
 	exit(0);
 }
@@ -36,4 +38,24 @@ void signal_update_game(int signum)
 		player *p = liste->list[i];
 		move_forward(p);
 	}
+}
+
+void signal_left(int signum)
+{
+	for(int i = 0; i<liste->player_count; i++)
+	{
+		player *p = liste->list[i];
+		move_left(p);
+	}
+	run_and_send();
+}
+
+void signal_right(int signum)
+{
+	for(int i = 0; i<liste->player_count; i++)
+	{
+		player *p = liste->list[i];
+		move_right(p);
+	}
+	run_and_send();
 }

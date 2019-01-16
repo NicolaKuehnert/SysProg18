@@ -63,7 +63,7 @@ void handle_method()
 		while(1)
 		{
 			char * input = receive_from_server();
-			
+			std::cout << input << std::endl;
 			if(strcmp(input, "close") == 0)
 			{
 				end();
