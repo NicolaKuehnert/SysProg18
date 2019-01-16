@@ -1,7 +1,7 @@
 #ifndef GUI_H
 #define GUI_H 
 #include <ncurses.h>
-
+extern int player_id;
 
 int move();
 

@@ -55,6 +55,7 @@ void draw_board(){
 	waddch(win, 'l' | COLOR_PAIR(7));
 	waddch(win, 'o' | COLOR_PAIR(7));
 	waddch(win, 'w' | COLOR_PAIR(7));
+	//std::cout << player_id << std::endl;
 	
 	// Setze den Cursor auf die letzte, sichtbare Zeile (Lines-1 groß, also Lines-2 die letzte, sichtbare Line)
 	mvwaddch(win, LINES-2, 3, ' ' | COLOR_PAIR(2));
@@ -213,37 +214,6 @@ int end(){
 	return 0;
 }
 
-int move()
-{
-	/*int running = 1;
-	
-	while(running){
-		int ch = wgetch(win);
-		sleep(1);
-		// Auswerten des Inputs
-		switch(ch){
-			// Spielfigur nach links drehen
-			case 'a':
-				send_move("l");
-				break;
-			// Spielfigur nach rechts drehen
-			case 'd':
-				send_move("r");
-				break;
-			// Spiel beenden, wichtig: Shift + e drücken!
-			case 'E':
-			running = 0;
-				break;
-			// Alle anderen Tasten sollen ignoriert werden
-			default:
-				send_move("f");
-				break;
-		}
-		wrefresh(win);		
-    }
-	endwin();
-	return 0;*/
-}
 
 int get_key()
 {
@@ -263,16 +233,14 @@ int get_key()
 		case 'E':
 			return 0;
 			break;
-		// Alle anderen Tasten sollen ignoriert werden
-		default:
-			send_move("f");
-			break;
 	}
 	wrefresh(win);
 	return 1;
 }
 
 void set_position(int x, int y, int direction) {
+	std::cout << x << std::endl;
+	std::cout << y << std::endl;
 	if (direction == 0 || direction == 2) {
 		mvwaddch(win, x, y, ACS_VLINE | COLOR_PAIR(7));
 	} else if(direction == 1 || direction == 3) {
@@ -282,7 +250,7 @@ void set_position(int x, int y, int direction) {
 
 void set_player_id(int id)
 {
-	player_id = id;
+	::player_id = id;
 }
 
 void send_move(char *direction)

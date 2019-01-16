@@ -29,12 +29,13 @@ int init_client()
 			std::cout << "Connection Failed\n"; 
 			return -1; 
 		} 
-		
-		send_to_server("new");
+		init();
+		send_to_server("get_id");
 		
 		char* id = receive_from_server();
-		char *end;
-		set_player_id(atoi(id));
+		player_id = atoi(id);
+		//set_player_id(atoi(id));
+		handle_method();
 		
 		return 0;
     } 
@@ -44,26 +45,59 @@ int init_client()
 	return -1;
 }
 
-void handle_method(int (*get_key)())
+void handle_method()
 {
-	int running = 1;
-	while (true)
+	int pid = fork();
+	if (pid < 0) 
 	{
-		char * input = receive_from_server();
-		running = (get_key)();
+	 exit(1);
 	}
+	if (pid == 0) {
+	 /* This is the client process */
+		int running = 1;
+		while (running)
+		{
+			running = get_key();
+		}
+		send_to_server("close");
+	}
+	else {
+		while(1)
+		{
+			char * input = receive_from_server();
+			
+			if(strcmp(input, "close") == 0)
+			{
+				end();
+				return;
+			}
+			else 
+			{
+				int id = atoi(strtok(input, ","));
+				int face = atoi(strtok(NULL, ","));
+				int x = atoi(strtok(NULL, ","));
+				int y = atoi(strtok(NULL, ","));
+				int points = atoi(strtok(NULL, ","));
+				//std::cout << x << std::endl;
+				//std::cout << face << std::endl;
+				set_position(x, y, face);
+			}
+		}
+	}
+	
+	
 }
 
 void send_to_server(char *content)
 {
-	send(sock, content, strlen(content), 0 ); 
+	int i = send(sock, content, strlen(content), 0 ); 
 }
 
 char *receive_from_server()
 {
 	int len = 1024;
 	char buffer[len] = {0}; 
-	read(sock, buffer, len); 
+	recv(sock, buffer, len, 0); 
 	//std::cout << buffer << std::endl;
 	
 	char* s = new char[len + 1];
