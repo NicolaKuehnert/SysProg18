@@ -174,6 +174,11 @@ int init(){
 				}
 				else if(pos == 1 && in == 0){
 					in = 1;
+					char waiting[] = "Waiting for Server to start";
+					for(int i = 0; i<sizeof(waiting)-1;i++){
+						waddch(win, waiting[i] | COLOR_PAIR(2));
+					}
+					wrefresh(win);
 					int id = _server();
 					running = false;
 				}
@@ -187,7 +192,7 @@ int init(){
 		}
 		mvwaddch(win, LINES/2, (COLS/2)-8, ' ' | COLOR_PAIR(2));
 
-		for(int i = 0;i<sizeof(start_server)+2;i++){
+		for(int i = 0;i<30;i++){
 			waddch(win, ' ' | COLOR_PAIR(2));
 		}
 		clear();
@@ -239,8 +244,8 @@ int get_key()
 }
 
 void set_position(int x, int y, int direction) {
-	std::cout << x << std::endl;
-	std::cout << y << std::endl;
+	//std::cout << x << std::endl;
+	//std::cout << y << std::endl;
 	if (direction == 0 || direction == 2) {
 		mvwaddch(win, x, y, ACS_VLINE | COLOR_PAIR(7));
 	} else if(direction == 1 || direction == 3) {
