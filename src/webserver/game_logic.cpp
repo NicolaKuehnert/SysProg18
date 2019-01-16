@@ -14,17 +14,17 @@ float calculateTemperature(int raw){
 }
 
 
-//TempSensor sensor = TempSensor(calculateTemperature);
+TempSensor sensor = TempSensor(calculateTemperature);
 
 void init_game()
 {
-	//TM1637_setup();
-	//float geschwindigkeit = TEMPO;
+	TM1637_setup();
+	float geschwindigkeit = TEMPO;
 }
 
 float get_tempo()
 {
-	//return TEMPO;
+	return TEMPO;
 }
 
 

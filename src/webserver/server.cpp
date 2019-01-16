@@ -108,7 +108,7 @@ void send_status()
 	{
 		while(true)
 		{
-			sleep(1);
+			sleep(get_tempo());
 			//std::cout << "gesendet" << std::endl;
 			std::string m;
 			for(int i = 0; i<liste->player_count; i++)
