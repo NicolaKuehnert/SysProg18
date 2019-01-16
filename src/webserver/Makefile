@@ -1,7 +1,7 @@
 CFLAGS = -c -std=c++14 -Wall -pedantic -g
 LIB_PATH = ../../lib
 LIBS = -L$(LIB_PATH) -lledanzeige -ltempSensor
-OFLAGS = -pthread -lcrypt -lm -lrt -lwiringPi -lncurses $(LIBS) -Wl,-rpath=$(LIB_PATH)
+OFLAGS = -pthread -lcrypt -lm -lrt -lwiringPi -lsqlite3 -lncurses $(LIBS) -Wl,-rpath=$(LIB_PATH)
 PROJECT = webserver
 INCLUDE_PATH = ../../include
 INCLUDE = -I$(INCLUDE_PATH) -I.
@@ -19,6 +19,9 @@ CLIENT_H = $(INCLUDE_PATH)/$(PROJECT)/client.h
 GAME_LOGIC_C = game_logic.cpp
 GAME_LOGIC_H = $(INCLUDE_PATH)/$(PROJECT)/game_logic.h
 
+SQLITE_C = ../temperatur/sqlite_demo.cpp
+SQLITE_H = $(INCLUDE_PATH)/temperatur/sqlite_demo.h
+
 MAIN_C = main.cpp
 
 
@@ -30,8 +33,8 @@ $(PROJECT): tempSensor.so ledanzeige.so client.o gui.o main.o
 main.o: $(MAIN_C) $(GUI_H) $(SERVER_H) $()
 	g++ $(CFLAGS) $(INCLUDE) $(MAIN_C)
 	
-server: server.o game_logic.o
-	g++ -o server server.o game_logic.o $(OFLAGS)
+server: server.o game_logic.o sqlite_demo.o
+	g++ -o server server.o game_logic.o sqlite_demo.o $(OFLAGS)
 
 gui.o: $(GUI_C) $(GUI_H)
 	g++ $(CFLAGS) $(INCLUDE) $(GUI_C)
@@ -41,6 +44,9 @@ game_logic.o: $(GAME_LOGIC_C) $(GAME_LOGIC_H)
 	
 server.o: $(SERVER_C) $(SERVER_H) 
 	g++ $(CFLAGS) $(INCLUDE) $(SERVER_C)
+
+sqlite_demo.o: $(SQLITE_C) $(SQLITE_H) 
+	g++ $(CFLAGS) $(INCLUDE) $(SQLITE_C)
 	
 client.o: $(CLIENT_C) $(CLIENT_H)
 	g++ $(CFLAGS) $(INCLUDE) $(CLIENT_C)

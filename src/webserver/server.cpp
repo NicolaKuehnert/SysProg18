@@ -16,7 +16,7 @@ socklen_t peer_addr_size;
 player_list *liste = new player_list;
 bool running = false;
 int db_game_id = 0;
-I_SQLite db = I_SQLITE("tronserver.db");
+I_SQLite db = I_SQLite("tronserver.db");
 
 int fork_id_send;
 
