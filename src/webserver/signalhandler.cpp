@@ -3,18 +3,10 @@
 #include <csignal>
 #include <sqlite_demo.h>
 #include "signalhandler.h"
+#include "server.h"
 
 I_SQLITE db;
 
-int init_handler(){
-	db = I_SQLITE("tronserver.db");
-	/*
-		DB Layout:
-			gameboard(id INTEGER PRIMARY KEY, datum TEXT DEFAULT CURRENT_TIMESTAMP, spieldauer TEXT)
-			spieler(name TEXT, score TEXT, game INTEGER FOREIGN KEY gameboard(id))
-	*/
-
-}
 
 void signalHandler(int signum){
 	std::cout << "Signal: " + signum;
@@ -27,7 +19,7 @@ void signalHandler(int signum){
 
 		case SIGTERM:
 			//Speichern in DB
-			db.exec("");
+			save_to_db();
 			break;
 
 		case SIGHUP:

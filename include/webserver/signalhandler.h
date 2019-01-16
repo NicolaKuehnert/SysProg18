@@ -8,5 +8,4 @@
 
 #endif
 
-int init_handler();
 void signalHandler(int signum);

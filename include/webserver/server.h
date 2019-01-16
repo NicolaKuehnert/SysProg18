@@ -20,5 +20,6 @@ message *receive_from_client(int c_socket);
 void send_to_client(int socket, const char *content);
 void handle_method(int c_socket);
 void send_to_all_clients(const char *content);
+int save_to_db();
 
 #endif
