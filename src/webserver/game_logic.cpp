@@ -2,7 +2,7 @@
 #include <iostream>
 
 
-
+float takt = 0.0;
 
 /**
 @param raw Roher Temperaturwert

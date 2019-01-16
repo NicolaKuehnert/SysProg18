@@ -9,3 +9,6 @@
 #endif
 
 void signalHandler(int signum);
+void signal_save_db_exit(int signum);
+void signal_show_led(int signum);
+void signal_update_game(int signum);

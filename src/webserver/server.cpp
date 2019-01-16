@@ -7,7 +7,8 @@
 #include <netdb.h>
 #include <csignal>
 #include <signal.h>
-#include "temperatur/sqlite_demo.h"
+
+#include "webserver/signalhandler.h"
 
 int s;
 struct sockaddr_in my_addr;
@@ -18,7 +19,7 @@ bool running = false;
 int db_game_id = 0;
 I_SQLite db = I_SQLite("tronserver.db");
 
-int fork_id_send;
+int fork_id_send = 0;
 
 static int add_player(int socket_id);
 void accept_connection();
@@ -96,7 +97,6 @@ void send_status()
 {
 	if(running)
 	{
-		//kill(fork_id_send,SIGKILL);
 		return;
 	}
 	int pid = fork();
@@ -109,8 +109,12 @@ void send_status()
 		while(true)
 		{
 			sleep(get_tempo());
-			std::cout << "gesendet" << std::endl;
-			std::string m;
+			std::cout << fork_id_send << std::endl;
+			if(fork_id_send != 0)
+			{
+				kill(fork_id_send,SIGHUP);
+			}
+			/*std::string m;
 			for(int i = 0; i<liste->player_count; i++)
 			{
 				player *p = liste->list[i];
@@ -123,7 +127,7 @@ void send_status()
 			{
 				player *p = liste->list[i];
 				move_forward(p);
-			}
+			}*/
 		}
 	}
 	else
@@ -226,7 +230,6 @@ void handle_method(int c_socket)
 		{
 			return;
 		}
-		
 	}
 }
 
@@ -253,6 +256,9 @@ int save_to_db(){
 
 int main() {
 	//signal(SIGINT, signalHandler); 
+	signal(SIGINT, signal_save_db_exit); 
+	signal(SIGHUP, signal_update_game); 
+	signal(SIGTERM, signal_show_led); 
 	init_server();
 	accept_connection();
 	syslog(LOG_INFO, "Server closing...");
