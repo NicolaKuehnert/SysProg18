@@ -14,6 +14,7 @@ struct sockaddr_in peer_addr;
 socklen_t peer_addr_size;
 player_list *liste = new player_list;
 bool running = false;
+int db_game_id = 0;
 
 int fork_id_send;
 
@@ -23,6 +24,13 @@ void send_status();
 
 int init_server()
 {
+	db = I_SQLITE("tronserver.db");
+	/*
+		DB Layout:
+			gameboard(id INTEGER PRIMARY KEY, datum TEXT DEFAULT CURRENT_TIMESTAMP, spieldauer TEXT)
+			spieler(name TEXT, score TEXT, game INTEGER FOREIGN KEY gameboard(id))
+	*/
+
 	openlog("TronServer",LOG_INFO | LOG_PID, LOG_USER);
 
 	syslog(LOG_INFO, "Server starting");
@@ -222,6 +230,26 @@ void handle_method(int c_socket)
 		}
 		
 	}
+}
+
+int save_to_db(){
+	std::string out = "INSERT INTO gameboard(id, spieldauer) VALUES("
+	for(int i = 0; i < player_count; i++){
+		out += std::to_string(db_game_id) + ",";
+		out += std::to_string(10) + ");";
+	}
+	char *ptr = &out[0u];
+	db.exec(ptr);
+
+	out = "INSERT INTO spieler(name, score, game) VALUES(";
+
+	for(int i = 0; i < player_count; i++){
+		out += std::to_string(player_list[i].name) + ",";
+		out += std::to_string(player_list[i].points) + ",";
+		out += std::to_string(db_game_id) + ");";
+	}
+	db.exec(ptr);
+		
 }
 
 
