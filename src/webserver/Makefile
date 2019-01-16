@@ -22,6 +22,9 @@ GAME_LOGIC_H = $(INCLUDE_PATH)/$(PROJECT)/game_logic.h
 SQLITE_C = ../temperatur/sqlite_demo.cpp
 SQLITE_H = $(INCLUDE_PATH)/temperatur/sqlite_demo.h
 
+HANDLER_C = signalhandler.cpp
+HANDLER_H = $(INCLUDE_PATH)/$(PROJECT)/signalhandler.h
+
 MAIN_C = main.cpp
 
 
@@ -33,8 +36,8 @@ $(PROJECT): tempSensor.so ledanzeige.so client.o gui.o main.o
 main.o: $(MAIN_C) $(GUI_H) $(SERVER_H) $()
 	g++ $(CFLAGS) $(INCLUDE) $(MAIN_C)
 	
-server: server.o game_logic.o sqlite_demo.o
-	g++ -o server server.o game_logic.o sqlite_demo.o $(OFLAGS)
+server: server.o game_logic.o sqlite_demo.o signalhandler.o
+	g++ -o server server.o game_logic.o sqlite_demo.o signalhandler.o $(OFLAGS)
 
 gui.o: $(GUI_C) $(GUI_H)
 	g++ $(CFLAGS) $(INCLUDE) $(GUI_C)
@@ -50,6 +53,9 @@ sqlite_demo.o: $(SQLITE_C) $(SQLITE_H)
 	
 client.o: $(CLIENT_C) $(CLIENT_H)
 	g++ $(CFLAGS) $(INCLUDE) $(CLIENT_C)
+	
+signalhandler.o: $(HANDLER_C) $(HANDLER_H)
+	g++ $(CFLAGS) $(INCLUDE) $(HANDLER_C)
 	
 tempSensor.so:
 	make -C ../temperatur install_tempSensor
