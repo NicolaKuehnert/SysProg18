@@ -11,7 +11,7 @@ struct sockaddr_in serv_addr;
 
 int init_client() 
 {
-	    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
+	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
     { 
 		std::cout << "\n Socket creation error \n"; 
         return -1; 
@@ -40,7 +40,7 @@ int init_client()
 		return 0;
     } 
     else {
-		std::cout << "Invalid Adress\n";
+		//std::cout << "Invalid Adress\n";
 	}
 	return -1;
 }

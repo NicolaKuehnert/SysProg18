@@ -47,20 +47,16 @@ int init_server()
 		if(b != -1) {
 			listen(s, LISTEN_BACKLOG);
 			syslog(LOG_INFO, "Server started");
-			std::cout << "Server running.\n";
-			init_game();
-			return 0;
+				//std::cout << "Server running.\n";
 		} else {
 			syslog(LOG_ERR, "Server crashed - failed binding");
-			std::cout << "FAIL bind\n";
-			std::cout << std::to_string(b) + "\n";
-			return -1;
+			//std::cout << "FAIL bind\n";
+			//std::cout << std::to_string(b) + "\n";
 		}
 	} else {
 		syslog(LOG_ERR, "Server did not start - socket fail");
-		std::cout << "FAIL socket\n";
-		std::cout << std::to_string(s) + "\n";
-		return -1;
+		//std::cout << "FAIL socket\n";
+		//std::cout << std::to_string(s) + "\n";
 	}
 }
 

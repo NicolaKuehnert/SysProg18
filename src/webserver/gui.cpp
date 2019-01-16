@@ -1,5 +1,6 @@
 #include "webserver/gui.h"
 #include <unistd.h>
+#include <stdio.h>
 #include <iostream>
 #include <math.h>
 #include "webserver/client.h"
@@ -8,41 +9,36 @@ WINDOW * win;
 int player_id = 0;
 
 
-int init(){
-	// muss aufgerufen werden, bevor ncurses genutzt werden kann
-	initscr();
-	// initialisiert die Farben
-	start_color();
-	// kein Enter benötigt, Tastendrücken wird sofort weitergegeben
-	cbreak();
-	// tastendruck wird nicht ausgegeben
-	noecho();
-	// es werden auch Sondertasten genutzt (benötigt für Pfeiltasten)
-	keypad(stdscr, TRUE);
+int _server(){
+	try{
+		int pid = fork();
+		//wenn Kindprozess, dann den Server starten
+		if(pid==0){
+			char * const envi[] = {NULL};
+			char * const command[] = {"./server", NULL};
+			
+			//Absoluten Pfad anpassen!!!
+			execve("/home/nicola/Desktop/SysProg18/src/webserver/server", command, envi);
+			
+			_exit(1);
+		} else {
+			sleep(5);
+		}	
+		return pid;
+	} catch (...) {
+		end();
+	}
 	
-	// legt die Größe des Fensters fest
-	win = newwin(LINES-1, COLS-1, 0, 0);
-	
-	// zeichnet den Rand; Zeichen 0 ist die Linie;
-	//			rechts, links, oben, unten, oben links, oben rechts, unten links, unten rechts
-	wborder(win, 0, 0, 0, 0, 0, 0, 0, 0);
+}
+
+void draw_board(){
+	clear();
 	//zeige den Rand schonmal an
 	wrefresh(win);
 	
 	char header[] = "Score:  : Your Highscore:  : Game Highscore: ";
 	char footer[] = "Green Magenta Red Cyan ";
-	
-	// Setze die Standardfarbe des Fensters
-	wattron(win, COLOR_PAIR(1));
-	
-	// Diese Farbpaare brauchen wir später. Ein Paar besteht immer aus seiner ID, der Vordergrundfarbe (VG) und der Hintergrundfarbe (HG)
-	init_pair(2, 7, 0); //unser Standard: VG weiß, HG schwarz
-	init_pair(3, 2, 0); //VG grün, HG schwarz
-	init_pair(4, 5, 0); //VG magenta, HG schwarz
-	init_pair(5, 1, 0); //VG rot, HG schwarz
-	init_pair(6, 6, 0); //VG cyan, HG schwarz
-	init_pair(7, 3, 0); //VG gelb, HG schwarz
-	
+
 	// Setze den Cursor für den Header und schreibe ein Leerzeichen
 	mvwaddch(win, 0, 3, ' '| COLOR_PAIR(2));
 	
@@ -83,6 +79,131 @@ int init(){
 	
 	// Lade das Fenster neu, sodass der Text angezeigt wird
 	wrefresh(win);
+
+}
+
+int init(){
+	// muss aufgerufen werden, bevor ncurses genutzt werden kann
+	initscr();
+	// kein Enter benötigt, Tastendrücken wird sofort weitergegeben
+	cbreak();
+	// tastendruck wird nicht ausgegeben
+	noecho();
+
+	// initialisiert die Farben
+	start_color();
+
+	
+	// Diese Farbpaare brauchen wir später. Ein Paar besteht immer aus seiner ID, der Vordergrundfarbe (VG) und der Hintergrundfarbe (HG)
+	init_pair(2, 7, 0); //unser Standard: VG weiß, HG schwarz
+	init_pair(3, 2, 0); //VG grün, HG schwarz
+	init_pair(4, 5, 0); //VG magenta, HG schwarz
+	init_pair(5, 1, 0); //VG rot, HG schwarz
+	init_pair(6, 6, 0); //VG cyan, HG schwarz
+	init_pair(7, 3, 0); //VG gelb, HG schwarz
+	init_pair(8, 0, 7);
+
+
+	// es werden auch Sondertasten genutzt (benötigt für Pfeiltasten)
+	keypad(stdscr, TRUE);
+	
+	// legt die Größe des Fensters fest
+	win = newwin(LINES-1, COLS-1, 0, 0);
+	
+	// zeichnet den Rand; Zeichen 0 ist die Linie;
+	//			rechts, links, oben, unten, oben links, oben rechts, unten links, unten rechts
+	wborder(win, 0, 0, 0, 0, 0, 0, 0, 0);
+	//zeige den Rand schonmal an
+	wrefresh(win);
+	
+	char play[] = "Play game";
+	char start_server[] = "Start a server";
+	char arrow[] = "->";
+
+	mvwaddch(win, (LINES/2)-2, (COLS/2)-8, ' ' | COLOR_PAIR(2));
+	waddch(win, arrow[0] | COLOR_PAIR(8));
+	waddch(win, arrow[1] | COLOR_PAIR(8));
+	waddch(win, ' ' | COLOR_PAIR(2));
+
+	for(int i = 0;i<sizeof(play)-1;i++){
+		waddch(win, play[i] | COLOR_PAIR(2));
+	}
+	mvwaddch(win, LINES/2, (COLS/2)-5, ' ' | COLOR_PAIR(2));
+
+	for(int i = 0;i<sizeof(start_server)-1;i++){
+		waddch(win, start_server[i] | COLOR_PAIR(2));
+	}
+
+	// Setze die Standardfarbe des Fensters
+	wattron(win, COLOR_PAIR(1));
+	
+	
+	wrefresh(win);
+
+	int pos = 0;
+	int in = 0;
+	bool running = true;
+	while(running){
+		int ch = wgetch(win);
+		switch(ch){
+			case 's':
+				if(pos == 0){
+					mvwaddch(win, ((LINES/2)-2), ((COLS/2)-8), ' ' | COLOR_PAIR(2));
+					waddch(win, ' ' | COLOR_PAIR(2));
+					waddch(win, ' ' | COLOR_PAIR(2));
+					mvwaddch(win, LINES/2, (COLS/2)-8, ' ' | COLOR_PAIR(2));
+					waddch(win, arrow[0] | COLOR_PAIR(8));
+					waddch(win, arrow[1] | COLOR_PAIR(8));
+					pos = 1;
+				}
+				break;
+			case 'w':
+				if(pos == 1){
+					mvwaddch(win, LINES/2, (COLS/2)-8, ' ' | COLOR_PAIR(2));
+					waddch(win, ' ' | COLOR_PAIR(2));
+					waddch(win, ' ' | COLOR_PAIR(2));
+					mvwaddch(win, (LINES/2)-2, (COLS/2)-8, ' ' | COLOR_PAIR(2));
+					waddch(win, arrow[0] | COLOR_PAIR(8));
+					waddch(win, arrow[1] | COLOR_PAIR(8));
+					pos = 0;
+				}
+				break;
+			case '\n':
+				if(pos == 0){
+					running = false;
+				}
+				else if(pos == 1 && in == 0){
+					in = 1;
+					int id = _server();
+					running = false;
+				}
+			break;
+		}
+	}
+	try{
+		mvwaddch(win, ((LINES/2)-2), ((COLS/2)-8), ' ' | COLOR_PAIR(2));
+		for(int i = 0;i<sizeof(play)+2;i++){
+			waddch(win, ' ' | COLOR_PAIR(2));
+		}
+		mvwaddch(win, LINES/2, (COLS/2)-8, ' ' | COLOR_PAIR(2));
+
+		for(int i = 0;i<sizeof(start_server)+2;i++){
+			waddch(win, ' ' | COLOR_PAIR(2));
+		}
+		clear();
+		int check = init_client();
+		if(check >=0){
+			draw_board();
+			handle_method(get_key);
+		} else {
+			end();
+			sleep(1);
+			return -1;
+		}
+	} catch (...) {
+		end();
+	}
+	
 	return 0;
 	
 }

@@ -5,5 +5,5 @@
 
 
 int main() {
-	init_client();
+	init();
 }
