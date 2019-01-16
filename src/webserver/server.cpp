@@ -7,6 +7,7 @@
 #include <netdb.h>
 #include <csignal>
 #include <signal.h>
+#include "temperatur/sqlite_demo.h"
 
 int s;
 struct sockaddr_in my_addr;
@@ -15,7 +16,7 @@ socklen_t peer_addr_size;
 player_list *liste = new player_list;
 bool running = false;
 int db_game_id = 0;
-int db;
+I_SQLite db = I_SQLITE("tronserver.db");
 
 int fork_id_send;
 
@@ -25,7 +26,7 @@ void send_status();
 
 int init_server()
 {
-	db = I_SQLITE("tronserver.db");
+	
 	/*
 		DB Layout:
 			gameboard(id INTEGER PRIMARY KEY, datum TEXT DEFAULT CURRENT_TIMESTAMP, spieldauer TEXT)
