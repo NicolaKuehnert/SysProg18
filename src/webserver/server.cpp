@@ -5,14 +5,14 @@
 #include <syslog.h>
 #include "webserver/server.h"
 #include <netdb.h>
+#include <csignal>
 #include <signal.h>
 
 int s;
 struct sockaddr_in my_addr;
 struct sockaddr_in peer_addr;
 socklen_t peer_addr_size;
-player *player_list[10];
-int player_count = 0;
+player_list *liste = new player_list;
 bool running = false;
 
 int fork_id_send;
@@ -78,7 +78,7 @@ void accept_connection()
 			 exit(0);
 		  }
 		  else {
-			  ::player_count = add_player(new_socket);
+			  liste->player_count = add_player(new_socket);
 			  send_status();
 			  close(new_socket);
 		  }
@@ -105,17 +105,17 @@ void send_status()
 			sleep(1);
 			std::cout << "gesendet" << std::endl;
 			std::string m;
-			for(int i = 0; i<::player_count; i++)
+			for(int i = 0; i<liste->player_count; i++)
 			{
-				player *p = player_list[i];
+				player *p = liste->list[i];
 				// nachricht : "id,currface,curr_x,curr_y,points;"
 				m = std::to_string(p->socket) + "," + std::to_string(p->curr_face) + "," + std::to_string(p->curr_x) + "," + std::to_string(p->curr_y) + "," + std::to_string(p->points) + ";";
 			}
 			send_to_all_clients(m.c_str());
 			
-			for(int i = 0; i<::player_count; i++)
+			for(int i = 0; i<liste->player_count; i++)
 			{
-				player *p = player_list[i];
+				player *p = liste->list[i];
 				move_forward(p);
 			}
 		}
@@ -135,8 +135,8 @@ static int add_player(int socket_id)
 	p->curr_face = 0;
 	p->curr_x = 5;
 	p->curr_y = 5;
-	player_list[::player_count++] = p;
-	return ::player_count;
+	liste->list[liste->player_count++] = p;
+	return liste->player_count;
 }
 
 message *receive_from_client(int c_socket)
@@ -163,9 +163,9 @@ void send_to_client(int c_socket,const char* content)
 
 void send_to_all_clients(const char *content)
 {
-	for(int i = 0; i<::player_count; i++)
+	for(int i = 0; i<liste->player_count; i++)
 	{
-		player *p = player_list[i];
+		player *p = liste->list[i];
 		send_to_client(p->socket, content);
 	}
 }
@@ -173,9 +173,9 @@ void send_to_all_clients(const char *content)
 player* get_player_by_id(int id)
 {
 	player *pl;
-	for(int i = 0; i<::player_count; i++)
+	for(int i = 0; i<liste->player_count; i++)
 	{
-		pl = player_list[i];
+		pl = liste->list[i];
 		if(pl->socket == id)
 		{
 			return pl;
@@ -226,6 +226,7 @@ void handle_method(int c_socket)
 
 
 int main() {
+	//signal(SIGINT, signalHandler); 
 	init_server();
 	accept_connection();
 	syslog(LOG_INFO, "Server closing...");

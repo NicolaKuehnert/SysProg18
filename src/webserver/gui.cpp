@@ -118,6 +118,8 @@ int get_key()
 }
 
 void set_position(int x, int y, int direction) {
+	std::cout << x << std::endl;
+	std::cout << y << std::endl;
 	if (direction == 0 || direction == 2) {
 		mvwaddch(win, x, y, ACS_VLINE | COLOR_PAIR(7));
 	} else if(direction == 1 || direction == 3) {
