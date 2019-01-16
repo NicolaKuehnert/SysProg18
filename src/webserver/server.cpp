@@ -25,6 +25,9 @@ static int add_player(int socket_id);
 void accept_connection();
 void send_status();
 
+/*
+Inititalisiert den Server und startet die Datenbank
+*/
 int init_server()
 {
 	
@@ -65,6 +68,9 @@ int init_server()
 	}
 }
 
+/*
+Wartet auf neue Clients und stellt eine Verbindung her
+*/
 void accept_connection()
 {
 	while (1) {
@@ -96,6 +102,9 @@ void accept_connection()
    }
 }
 
+/*
+Senden den aktuellen Status des Spiels an die Clients
+*/
 void send_status()
 {
 	if(running)
@@ -133,6 +142,9 @@ void run_and_send()
 	}
 }
 
+/*
+Fügt einen Spieler dem Spiel hinzu
+*/
 static int add_player(int socket_id)
 {
 	player *p = new player;
@@ -145,6 +157,9 @@ static int add_player(int socket_id)
 	return liste->player_count;
 }
 
+/*
+Emfängt eine Nachricht eines Clients
+*/
 message *receive_from_client(int c_socket)
 {
    int n, len = 1024;
@@ -162,11 +177,17 @@ message *receive_from_client(int c_socket)
    return m;
 }
 
+/*
+Sendet eine Nachricht an einen Client
+*/
 void send_to_client(int c_socket,const char* content) 
 {
 	send(c_socket, content , strlen(content), 0 ); 
 }
 
+/*
+Sendet eine Nachricht an alle Clienten
+*/
 void send_to_all_clients(const char *content)
 {
 	syslog(LOG_INFO, "send to all");
@@ -177,6 +198,9 @@ void send_to_all_clients(const char *content)
 	}
 }
 
+/*
+Liefert einen Spieler an hand seiner ID zurück
+*/
 player* get_player_by_id(int id)
 {
 	player *pl;
@@ -191,6 +215,9 @@ player* get_player_by_id(int id)
 	return nullptr;
 }
 
+/*
+Empfängt eine Nachricht vom Client, wertet diese aus und führt Aktionen anhand der Auswertung aus
+*/
 void handle_method(int c_socket)
 {
 	while(true)
@@ -233,6 +260,9 @@ void handle_method(int c_socket)
 	}
 }
 
+/*
+Speichert die Spielinformationen in die DB
+*/
 int save_to_db(){
 	
 	std::string out = "INSERT INTO gameboard(id, spieldauer) VALUES(";

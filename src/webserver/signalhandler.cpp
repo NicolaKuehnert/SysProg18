@@ -10,7 +10,9 @@
 
 
 
-
+/*
+Signal Handler Funktion zum Speichern und beenden
+*/
 void signal_save_db_exit(int signum)
 {
 	save_to_db();
@@ -18,10 +20,17 @@ void signal_save_db_exit(int signum)
 	exit(0);
 }
 
+/*
+Signal Handler zum Anzeigen der Daten auf der LED
+*/
 void signal_show_led(int signum)
 {
 	std::cout << "led" << std::endl;
 }
+
+/*
+Signal Handler zum Updates des Spielfeldes
+*/
 void signal_update_game(int signum)
 {
 	std::string m;

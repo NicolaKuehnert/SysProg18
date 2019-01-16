@@ -8,7 +8,9 @@
 WINDOW * win;
 int player_id = 0;
 
-
+/*
+Funktion zum forken des Servers
+*/
 int _server(){
 	try{
 		int pid = fork();
@@ -31,6 +33,9 @@ int _server(){
 	
 }
 
+/*
+Funktion zum erstellen des initialen Spielfeldes
+*/
 void draw_board(){
 	clear();
 	//zeige den Rand schonmal an
@@ -82,6 +87,11 @@ void draw_board(){
 
 }
 
+
+/*
+Inititalisiert Ncurses
+Erzeugt und behandelt das Hauptmenü
+*/
 int init(){
 	// muss aufgerufen werden, bevor ncurses genutzt werden kann
 	initscr();
@@ -140,11 +150,13 @@ int init(){
 	
 	wrefresh(win);
 
+	//Hauptmenü
 	int pos = 0;
 	int in = 0;
 	bool running = true;
 	while(running){
 		int ch = wgetch(win);
+		//Hier wird der Pfeil hoch oder runter gesetzt und Enter (\n) ist der Abbruch des Menüs
 		switch(ch){
 			case 's':
 				if(pos == 0){
@@ -186,6 +198,7 @@ int init(){
 		}
 	}
 	try{
+		//Entfernen des Textes des Hauptmenüs
 		mvwaddch(win, ((LINES/2)-2), ((COLS/2)-8), ' ' | COLOR_PAIR(2));
 		for(int i = 0;i<sizeof(play)+2;i++){
 			waddch(win, ' ' | COLOR_PAIR(2));
@@ -196,6 +209,7 @@ int init(){
 			waddch(win, ' ' | COLOR_PAIR(2));
 		}
 		clear();
+		//Client starten erfolgreich => Spiel beginnt, ansonsten Programm Ende
 		int check = init_client();
 		if(check >=0){
 			draw_board();
@@ -243,6 +257,9 @@ int get_key()
 	return 1;
 }
 
+/*
+Setzt den Spieler einen Schritt in die Bewegungsrichtung
+*/
 void set_position(int x, int y, int direction) {
 	//std::cout << x << std::endl;
 	//std::cout << y << std::endl;
@@ -258,6 +275,9 @@ void set_player_id(int id)
 	::player_id = id;
 }
 
+/*
+Sended einen Richtungswechsel an den Server
+*/
 void send_move(char *direction)
 {
 	send_to_server(direction);
