@@ -9,6 +9,9 @@ struct sockaddr_in address;
 int sock = 0; 
 struct sockaddr_in serv_addr; 
 
+/*
+Initialisiert den Client und versucht eine Verbindung mit dem Server herzustellen
+*/
 int init_client() 
 {
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
@@ -43,6 +46,9 @@ int init_client()
 	return -1;
 }
 
+/*
+Empfängt eine Nachricht vom Server und wertet diese aus, um dann Aktionen entsprechend der Auswertung auszuführen
+*/
 void handle_method()
 {
 	int pid = fork();
@@ -86,11 +92,17 @@ void handle_method()
 	
 }
 
+/*
+Sendet eine Nachricht an den Server
+*/
 void send_to_server(char *content)
 {
 	int i = send(sock, content, strlen(content), 0 ); 
 }
 
+/*
+Empfängt eine Nachricht vom Server
+*/
 char *receive_from_server()
 {
 	int len = 1024;

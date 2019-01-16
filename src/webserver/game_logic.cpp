@@ -9,25 +9,33 @@ float takt = 500.0;
 @return float Die aktuelle Temperatur
 */
 float calculateTemperature(int raw){
-	float temp = ((float)raw * (3.3/1024) -0.5) * 100;
-	return temp;
+	//float temp = ((float)raw * (3.3/1024) -0.5) * 100;
+	//return temp;
 }
 
 
-TempSensor sensor = TempSensor(calculateTemperature);
+//TempSensor sensor = TempSensor(calculateTemperature);
 
+/*
+Initialisiert die Logik
+*/
 void init_game()
 {
-	TM1637_setup();
-	float geschwindigkeit = TEMPO;
+	//TM1637_setup();
+	//float geschwindigkeit = TEMPO;
 }
 
+/*
+Berechnet die Geschwindigkeit anhand der Raumtemperatur
+*/
 float get_tempo()
 {
-	return ((sensor.getTemp() / 5) + takt);
+	//return ((sensor.getTemp() / 5) + takt);
 }
 
-
+/*
+Bewegt einen Spieler nach links
+*/
 void move_left(player * pl) {
 	switch(pl->curr_face){
 		case 0:
@@ -45,6 +53,9 @@ void move_left(player * pl) {
 		}
 }
 
+/*
+Bewegt einen Spieler nach rechts
+*/
 void move_right(player * pl) {
 	if(pl->curr_face == 0){
 			pl->curr_face = 3;
@@ -57,6 +68,9 @@ void move_right(player * pl) {
 	}
 }
 
+/*
+Bewegt einen Spieler vorwärts
+*/
 void move_forward(player * pl) {
 	switch(pl->curr_face){
 		case 0:
