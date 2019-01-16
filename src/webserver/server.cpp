@@ -15,6 +15,7 @@ socklen_t peer_addr_size;
 player_list *liste = new player_list;
 bool running = false;
 int db_game_id = 0;
+int db;
 
 int fork_id_send;
 
@@ -110,7 +111,7 @@ void send_status()
 	{
 		while(true)
 		{
-			sleep(1);
+			sleep(get_tempo());
 			std::cout << "gesendet" << std::endl;
 			std::string m;
 			for(int i = 0; i<liste->player_count; i++)
@@ -233,8 +234,8 @@ void handle_method(int c_socket)
 }
 
 int save_to_db(){
-	std::string out = "INSERT INTO gameboard(id, spieldauer) VALUES("
-	for(int i = 0; i < player_count; i++){
+	std::string out = "INSERT INTO gameboard(id, spieldauer) VALUES(";
+	for(int i = 0; i < liste->player_count; i++){
 		out += std::to_string(db_game_id) + ",";
 		out += std::to_string(10) + ");";
 	}
@@ -243,9 +244,9 @@ int save_to_db(){
 
 	out = "INSERT INTO spieler(name, score, game) VALUES(";
 
-	for(int i = 0; i < player_count; i++){
-		out += std::to_string(player_list[i].name) + ",";
-		out += std::to_string(player_list[i].points) + ",";
+	for(int i = 0; i < liste->player_count; i++){
+		out += std::to_string(liste->list[i]->name) + ",";
+		out += std::to_string(liste->list[i]->points) + ",";
 		out += std::to_string(db_game_id) + ");";
 	}
 	db.exec(ptr);

@@ -13,12 +13,18 @@ float calculateTemperature(int raw){
 	return temp;
 }
 
+
 TempSensor sensor = TempSensor(calculateTemperature);
 
 void init_game()
 {
 	TM1637_setup();
-	float geschwindigkeit = sensor.getTemp() / 50;
+	float geschwindigkeit = TEMPO;
+}
+
+float get_tempo()
+{
+	return TEMPO;
 }
 
 
